@@ -1,0 +1,16 @@
+footer{
+    background-color: #20262c;
+    color: white;
+    padding: 10px 0;
+    bottom: 0;
+    width: 100%;
+    border-top: solid 1px #000000;
+}
+
+footer .container{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-left: 1rem;
+}
+

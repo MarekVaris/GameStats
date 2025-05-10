@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
+import '../../styles/top_current_games.css'
 
 type Game = {
   rank: number
   name: string
+  concurrent_in_game: number
   header_image: string
-  peak_in_game: number
 }
 
 const ITEMS_PER_PAGE = 10
@@ -47,7 +48,7 @@ const GameStats = () => {
             <img src={game.header_image} alt="img" />
             <div>
               <p><span>Game Name:</span> {game.name}</p>
-              <p><span>Peak Players:</span> {game.peak_in_game.toLocaleString()}</p>
+              <p><span>Current Players:</span> {game.concurrent_in_game}</p>
             </div>
           </li>
         ))}

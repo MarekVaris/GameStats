@@ -14,13 +14,19 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CSV_FILE = os.path.join(BASE_DIR, "steam_games.csv")
 STEAM_API_KEY = os.getenv('STEAM_API_KEY')
 
-
+# JUST FOR NOW
+# creating a CSV file if it doesn't exist
+# with the headers: appid, name, header_image
 def check_csv_if_exist():
     if not os.path.isfile(CSV_FILE):
         with open(CSV_FILE, 'w', newline='', encoding='utf-8') as f:
             writer = csv.DictWriter(f, fieldnames=['appid', 'name', 'header_image'])
             writer.writeheader()
-    
+
+# Fetch game metadata from CSV or API
+# Input: appid
+# Output: appid, name, header_image
+# If the appid is not found in the CSV, fetch from API and save to CSV
 def fetch_game_metadata(appid: str):
     check_csv_if_exist()
 
@@ -57,10 +63,10 @@ def fetch_game_metadata(appid: str):
 
 # Top Current Gasmes
 # Input: key
-# Output: rank, appid, last_week_rank, peak_in_game, name, header_image
+# Output: rank, appid, concurrent_in_game, peak_in_game + name, header_image
 @app.route('/api/topcurrentgames')
 def get_top_current_games():
-    url = f"https://api.steampowered.com/ISteamChartsService/GetMostPlayedGames/v1/?key={STEAM_API_KEY}"
+    url = f"https://api.steampowered.com/ISteamChartsService/GetGamesByConcurrentPlayers/v1/?key={STEAM_API_KEY}"
     try:
         res = requests.get(url)
         data = res.json()
@@ -74,7 +80,7 @@ def get_top_current_games():
             combine_data.append({
                 "rank": game['rank'],
                 "appid": appid,
-                "last_week_rank": game['last_week_rank'],
+                "concurrent_in_game": game['concurrent_in_game'],
                 "peak_in_game": game['peak_in_game'],
                 "name": metadata.get('name') if metadata else "Unknown",
                 "header_image": metadata.get('header_image') if metadata else ""
@@ -84,7 +90,7 @@ def get_top_current_games():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# Game Metadata from appid
+# Get Metadata from appid
 # Input: appid
 # Output: appid, name, header_image
 @app.route('/api/steam/<appid>')

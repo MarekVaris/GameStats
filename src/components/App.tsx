@@ -1,11 +1,11 @@
 import React from 'react'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import '../styles/App.css';
-import Header from './header_app'
-import Footer from './footer_app'
+import Header from './layout/header_app'
+import Footer from './layout/footer_app'
 
-import Home from './home'
-import TopSteamGames from './Api/steam_top_current_games'
+import Home from './pages/home'
+import TopSteamGames from './pages/top_steam_games'
 
 
 const App: React.FC = () => {

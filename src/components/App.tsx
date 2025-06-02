@@ -6,6 +6,7 @@ import Footer from './layout/footer_app'
 
 import Home from './pages/home'
 import TopSteamGames from './pages/top_steam_games'
+import GameInfo from './pages/game_info'
 
 
 const App: React.FC = () => {
@@ -17,7 +18,7 @@ const App: React.FC = () => {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/TopSteamGames" element={<TopSteamGames />} />
-              <Route path="/game/:appid" element={<TopSteamGames />} />
+              <Route path="/game/:appid" element={<GameInfo />} />
             </Routes>
         </main>
         <Footer />

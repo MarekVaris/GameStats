@@ -16,6 +16,11 @@ ul {
   list-style: none;
 }
 
+.game-link{
+  text-decoration: none;
+  color: #e0e0e0;
+}
+
 li {
   width: 100%;
   background-color: #2a2f36;

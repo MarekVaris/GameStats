@@ -16,12 +16,12 @@ ul {
   list-style: none;
 }
 
-.game-link{
+.game-links{
   text-decoration: none;
   color: #e0e0e0;
 }
 
-li {
+.game-row {
   width: 100%;
   background-color: #2a2f36;
   margin: 0.3rem 0;
@@ -32,25 +32,25 @@ li {
   transition: background-color 0.3s ease;
 }
 
-li:hover {
+.game-row:hover {
   background-color: #323841;
 }
 
-li div {
+.game-row div {
   display: flex;
   justify-content: space-between;
   width: 100%;
   padding: 0.5rem 0;
 }
 
-li span {
+.game-row span {
   font-weight: 600;
   color: #61dafb;
   margin: 0 2rem 0 0;
 
 }
 
-img {
+.header-image-row {
   width: 10rem;
   height: 64px;
   margin-right: 1.5rem;
@@ -58,7 +58,7 @@ img {
 }
 
 .pagination {
-  text-align: left;
+  text-align: center;
   margin-top: 2rem;
 }
 

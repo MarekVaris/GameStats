@@ -1,6 +1,8 @@
-import { useEffect, useState, useRef } from 'react';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import '../../styles/top_current_games.css'
+
 import { fetchTopSteamGames } from '../../api/steam_games';
 
 const SHOW_PAGES = 1
@@ -15,26 +17,25 @@ type Game = {
 }
 
 const GameStats = () => {
-    const [games, setGames] = useState<Game[]>([])
     const [currentPage, setCurrentPage] = useState(1)
     const [itemsPerPage, setItemsPerPage] = useState(25)
-    const hasFetched = useRef(false)
 
-    // Fetch top Steam games when the component mounts - "[]" makes it run only once
-    useEffect(() => {
-        if (hasFetched.current) return
-        hasFetched.current = true
-        fetchTopSteamGames()
-            .then(setGames)
-            .catch((error) => {
-                console.error('Error fetching top Steam games:', error)
-            })
-    }, [])
+    // Fetch top Steam games when the component mounts
+    const {
+        data: games,
+        isLoading,
+        error
+    } = useQuery<Game[]>({
+        queryKey: ['topSteamGames'],
+        queryFn: fetchTopSteamGames,
+        staleTime: 1000 * 60 * 5,
+        refetchOnWindowFocus: false,
+    });
 
     // Calculate total pages and current games to display based on the current page and items per page
-    const totalPages = Math.ceil(games.length / itemsPerPage)
+    const totalPages = Math.ceil((games?.length ?? 0) / itemsPerPage)
     const startIndex = (currentPage - 1) * itemsPerPage
-    const currentGames = games.slice(startIndex, startIndex + itemsPerPage)
+    const currentGames = (games ?? []).slice(startIndex, startIndex + itemsPerPage)
 
     // Function to handle going forward one page
     const handleNext = () => {
@@ -84,10 +85,10 @@ const GameStats = () => {
                     {/* Displaying games (rows) */}
                     {/* Each game is a link to its own page */}
                     {currentGames.map((game) => (
-                        <Link to={`/game/${game.appid}`} key={game.appid} className="game-link">
-                            <li key={game.rank}>
+                        <Link to={`/game/${game.appid}`} key={game.appid} className="game-links">
+                            <li key={game.rank} className="game-row">
                                 <span className="rank">{game.rank}</span>
-                                <img src={game.header_image} alt="img" />
+                                <img className='header-image-row' src={game.header_image} alt="img" />
                                 <div>
                                     <p><span>Game Name:</span> {game.name}</p>
                                     <p><span>Current Players:</span> {game.concurrent_in_game}</p>

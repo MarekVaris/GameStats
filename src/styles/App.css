@@ -12,12 +12,13 @@ body {
     min-height: 100vh;
 }
 
-main.container {
+.container-main {
     padding: 2rem;
     padding-top: 0;
-}
-main {
     flex: 1;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
 }
 
 h1 {

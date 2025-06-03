@@ -1,46 +1,130 @@
+.game-info{
+    max-width: 80vw;
+    margin: 2rem auto;
+}
+
+.screenshots-game-info{
+    margin: 0 2vw 0 2vw;
+}
+
+.screenshots-game-info h1{
+    text-align: left;
+}
+
 .header-game-info img{
     width: 100%;
-    height: 100%;
+    aspect-ratio: 16/9;
     object-fit: cover;
     border-radius: 13px;
 }
 
-.image-list-container-gameinfo {
+.image-carousel-wrapper-game-info {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.scroll-button {
+    position: absolute;
+    width: 5%;
+    height: 50%;
+    font-size: calc(0.4 * 5vw);
+    color: white;
+    cursor: pointer;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 10;
+}
+
+.scroll-button.left {
+    left: 0;
+}
+
+.scroll-button.right {
+    right: 0;
+}
+
+.scroll-button:hover {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+.image-list-container-game-info {
     display: flex;
     flex-flow: row nowrap;
     overflow-x: auto;
     overflow-y: hidden;
     gap: 0.4em;
-    scroll-snap-type: x mandatory;
+    margin: 1em;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    scrollbar-color: transparent transparent;
 }
 
-.image-list-container-gameinfo img {
+.image-list-container-game-info img {
     width: 20vw;
-    height: 11.3vw;
-    scroll-snap-align: start;
+    aspect-ratio: 16/9;
     border-radius: 13px;
     margin: 0.5em;
-    transition: transform 0.3s ease, border 0.3s ease;
+    scroll-snap-align: start;
+    transition: transform 0.5s ease-out;
     box-sizing: border-box;
 }
 
-.image-list-container-gameinfo img.focused {
+.image-list-container-game-info img.focused {
     transform: scale(1.1);
     border: 4px solid #61dafb;
-    z-index: 1;
 }
 
-.image-list-container-gameinfo img:hover {
-    transform: scale(1.05);
-    transition: transform 0.3s ease;
+.image-list-container-game-info img:hover {
+    transform: scale(1.1);
+    transition: transform 0.5s ease;
+}
+
+.back-button-game-info{
+    background-color: #2f363e;
+    color: #e0e0e0;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    margin: 1em;
 }
 
 .details-game-info{
     display: flex;
     flex-direction: row;
+    width: 100%;
 }
 
 .details-game-info div{
     border: 1px solid #2f363e;
+    border-radius: 13px;
+    padding: 1em;
     margin: 1em;
+}
+
+.description-game-info{
+    width: 70%;
+}
+
+.pub-dev-game-info{
+    width: 30%;
+}
+
+.categories-game-info{
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #2f363e;
+    border-radius: 13px;
+    padding: 1em;
+    margin: 1em;
+    gap: 0.5em;
+}
+
+.categories-game-info span{
+    border: 3px solid #2f363e;
+    border-radius: 13px;
+    margin-right: 0.5em;
+    margin-bottom: 0.3em;
+    padding: 0.2em;
+    display: inline-block;
 }

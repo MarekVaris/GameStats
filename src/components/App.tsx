@@ -12,16 +12,20 @@ import GameInfo from './pages/game_info'
 const client = new QueryClient()
 
 const App: React.FC = () => {
+  const [backgroundUrl, setBackgroundUrl] = React.useState('');
+
   return (
     <Router>
       <div className="App">
         <Header />
         <QueryClientProvider client={client}>
-          <main className="container">
+          <main className="container-main" style={{ 
+                backgroundImage: backgroundUrl ? `url(${backgroundUrl})` : 'none',
+          }}>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/TopSteamGames" element={<TopSteamGames />} />
-            <Route path="/game/:appid" element={<GameInfo />} />
+            <Route path="/game/:appid" element={<GameInfo setBackgroundUrl={setBackgroundUrl} />} />
           </Routes>
           </main>
         </QueryClientProvider>

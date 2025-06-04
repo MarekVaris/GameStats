@@ -89,7 +89,7 @@ const GameStats = () => {
                             <li key={game.rank} className="game-row">
                                 <span className="rank">{game.rank}</span>
                                 <img className='header-image-row' src={game.header_image} alt="img" />
-                                <div>
+                                <div className="row-info">
                                     <p><span>Game Name:</span> {game.name}</p>
                                     <p><span>Current Players:</span> {game.concurrent_in_game}</p>
                                 </div>

@@ -11,7 +11,7 @@ import GameInfo from './pages/game_info'
 
 const client = new QueryClient()
 
-const App: React.FC = () => {
+const App = () => {
   const [backgroundUrl, setBackgroundUrl] = React.useState('');
 
   return (

@@ -13,7 +13,7 @@ body {
 }
 
 .container-main {
-    padding: 2rem;
+    padding: 2em;
     padding-top: 0;
     flex: 1;
     background-size: cover;

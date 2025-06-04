@@ -3,7 +3,7 @@ import "../../styles/footer.css";
 const Footer = () => {
     return (
         <footer>
-            <div className="container">
+            <div className="container-footer">
                 <div>
                     <p>&copy; 2023 GameStats.</p>
                 </div>

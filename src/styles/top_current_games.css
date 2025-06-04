@@ -1,80 +1,145 @@
-.num-games-selector select{
-  background-color: #2a2f36;
-  color: #e0e0e0;
-  padding: 10px 16px;
-  border: none;
-  border-radius: 6px;
-  margin: 0 5px;
-  cursor: pointer;
-  font-size: 1rem;
+/* Dropdown for selecting number of games */
+.num-games-selector select {
+    background-color: #2a2f36;
+    color: #e0e0e0;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    margin: 0 5px;
+    cursor: pointer;
+    font-size: 1rem;
 }
 
+/* List container */
 ul {
-  max-width: 1000px;
-  margin: 2rem auto;
-  padding: 0;
-  list-style: none;
+    max-width: 60em;
+    margin: 2rem auto;
+    padding: 0;
+    list-style: none;
 }
 
-li {
-  width: 100%;
-  background-color: #2a2f36;
-  margin: 0.3rem 0;
-  padding: 0.5rem 1.5rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-  display: flex;
-  align-items: center;
-  transition: background-color 0.3s ease;
+/* Game link styling */
+.game-links {
+    text-decoration: none;
+    color: #e0e0e0;
 }
 
-li:hover {
-  background-color: #323841;
+/* Game row card */
+.game-row {
+    background-color: #2a2f36;
+    margin: 0.5rem auto;
+    padding: 0.75rem 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    transition: background-color 0.3s ease;
+    border-radius: 8px;
 }
 
-li div {
-  display: flex;
-  justify-content: space-between;
-  width: 100%;
-  padding: 0.5rem 0;
+/* Hover effect */
+.game-row:hover {
+    background-color: #323841;
 }
 
-li span {
-  font-weight: 600;
-  color: #61dafb;
-  margin: 0 2rem 0 0;
-
+/* Inner flex layout */
+.game-row div {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    width: 100%;
+    gap: 0.5rem;
 }
 
-img {
-  width: 10rem;
-  height: 64px;
-  margin-right: 1.5rem;
-  object-fit: cover;
+/* Highlighted text */
+.game-row span {
+    font-weight: 600;
+    color: #61dafb;
+    margin-right: 1rem;
+    white-space: nowrap;
 }
 
+/* Game header image */
+.header-image-row {
+    width: 10rem;
+    height: 64px;
+    margin-right: 1rem;
+    object-fit: cover;
+    border-radius: 6px;
+}
+
+.row-info p{
+    margin: 0;
+}
+
+/* Pagination container */
 .pagination {
-  text-align: left;
-  margin-top: 2rem;
+    text-align: center;
+    margin: 2rem auto 3rem;
 }
 
+/* Pagination buttons */
 .pagination button {
-  background-color: #2f363e;
-  color: #e0e0e0;
-  padding: 10px 16px;
-  border: none;
-  border-radius: 6px;
-  margin: 0 5px;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: background-color 0.3s ease;
+    background-color: #2f363e;
+    color: #e0e0e0;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    margin: 0 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
 }
 
 .pagination button:hover {
-  background-color: #3f4852;
+    background-color: #3f4852;
 }
 
+/* Current page */
 .pagination .active {
-  background-color: #61dafb;
-  color: #1b1f23;
-  font-weight: bold;
+    background-color: #61dafb;
+    color: #1b1f23;
+    font-weight: bold;
+}
+
+@media (max-width: 800px) {
+    .game-row {
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+        padding: 1rem;
+    }
+
+    .game-row span {
+        align-self: center;
+        margin-right: 0;
+        margin-bottom: 0.5rem;
+    }
+
+    .game-row div {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .header-image-row {
+        width: 100%;
+        height: auto;
+        margin: 0 0 1rem 0;
+    }
+
+    .game-row span {
+        margin: 0 0 0.5rem 0;
+    }
+
+    .num-games-selector select {
+        width: 100%;
+        font-size: 1rem;
+        margin: 1rem 0;
+    }
+
+    .pagination button {
+        padding: 10px 12px;
+        font-size: 0.9rem;
+        margin: 4px;
+    }
 }

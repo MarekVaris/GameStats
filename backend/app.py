@@ -3,7 +3,7 @@ from flask_cors import CORS
 import os
 from dotenv import load_dotenv
 import requests
-import csv
+import csv 
 
 load_dotenv()
 
@@ -65,11 +65,13 @@ def fetch_game_metadata(appid: str):
             reader = csv.DictReader(csvfile)
             for row in reader:
                 if row['appid'] == str(appid):
-                    return {
-                        "appid": appid,
-                        "name": row["name"],
-                        "header_image": row["header_image"]
-                    }
+                    result = {}
+                    for data in fieldnames:
+                        if data in ["platforms", "categories", "genres", "screenshots"]:
+                            result[data] = row[data].split(", ") if row[data] else []
+                        else:
+                            result[data] = row[data]
+                    return result
 
     url = f"https://store.steampowered.com/api/appdetails?appids={appid}"
     res = requests.get(url)

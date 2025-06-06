@@ -10,12 +10,18 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app)
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
 STEAM_API_KEY = os.getenv('STEAM_API_KEY')
 
 CSV_FILE_METADATA = os.path.join(BASE_DIR, "SteamGamesMetadata.csv")
-CSV_FILE_APPLIST = os.path.join(BASE_DIR, "SteamAppsList.csv")
+CSV_FILE_ALL_GAMES = os.path.join(BASE_DIR, "Clean_WithPLayers_SteamPlayersCountHistory.csv")
 
+# List of appids that are known to have issues fetching metadata
+BAD_FETCHING_APPIDS = [
+    "243380","219600","3349480","2939590","2147450","201700","105400","1046480","202480","223350",
+    "282350","28050","3604320","91310","367540","1418870","255480","1031510", "3669060", "1361350", 
+    "2154770", "1874910", "42690", "1630280", "207890", "2586520", "2294090", "41010", "2178420",
+    "34000","2066750","1825750"]
 
 #########################################################
 #####################   FUNCTIONS   #####################
@@ -39,30 +45,24 @@ def check_csv_if_metadata_exist():
     else:
         return True
 
-# creating a CSV file for all games
-# Output: appid, name
-def fetch_steam_apps_list():
-    url = f"https://api.steampowered.com/ISteamApps/GetAppList/v2/"
-    res = requests.get(url)
-    data = res.json()
-    app_list = data['applist']['apps']
-    if not os.path.isfile(CSV_FILE_APPLIST):
-        with open(CSV_FILE_APPLIST, 'w', newline='', encoding='utf-8') as f:
-            writer = csv.DictWriter(f, fieldnames=['appid', 'name'])
-            writer.writeheader()
-            for app in app_list:
-                writer.writerow(app)
-
 
 # Fetch game metadata from CSV or API
 # Input: appid
-# Output: appid, name, header_image
-# If the appid is not found in the CSV, fetch from API and save to CSV
-def fetch_game_metadata(appid: str):    
+# Output: appid, name, header_image, short_description, developers, publishers,
+#  release_date, platforms, price, categories, genres, website, screenshots, background
+def fetch_game_metadata(appid: str = None):
+    if appid is None:
+        if check_csv_if_metadata_exist():
+            with open(CSV_FILE_METADATA, 'r', encoding='utf-8') as f:
+                reader = csv.DictReader(f)
+                return [row for row in reader]
 
+    if appid in BAD_FETCHING_APPIDS:
+        return None
+    # Check if the CSV file exists and has the metadata
     if check_csv_if_metadata_exist():
-        with open(CSV_FILE_METADATA, 'r', encoding='utf-8') as csvfile:
-            reader = csv.DictReader(csvfile)
+        with open(CSV_FILE_METADATA, 'r', encoding='utf-8') as f:
+            reader = csv.DictReader(f)
             for row in reader:
                 if row['appid'] == str(appid):
                     result = {}
@@ -73,12 +73,18 @@ def fetch_game_metadata(appid: str):
                             result[data] = row[data]
                     return result
 
+    # If the appid is not found in the CSV, fetch from API and save to CSV
     url = f"https://store.steampowered.com/api/appdetails?appids={appid}"
-    res = requests.get(url)
-    data = res.json()
-    
-    if not data.get(appid, {}).get("success"):
+    try:
+        res = requests.get(url, timeout=10)
+        data = res.json()
+        if not data.get(appid, {}).get("success"):
+            raise ValueError(f"App ID {appid} not found or API request failed.")
+
+    except Exception as e:
+        print(f"Error fetching metadata for appid {appid}: {e}")
         return None
+
 
     game_data = data[appid]["data"]
     result = {
@@ -97,11 +103,60 @@ def fetch_game_metadata(appid: str):
         "screenshots": ", ".join([s["path_full"] for s in game_data.get("screenshots", [])]),
         "background": game_data.get("background")
     }
-    with open(CSV_FILE_METADATA, 'a', newline='', encoding='utf-8') as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+
+    with open(CSV_FILE_METADATA, 'a', newline='', encoding='utf-8') as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writerow(result)
 
+
     return result
+
+# Get all games from CSV file
+# Input: ranks_steam (list of top 100 games from Steam API), current_time (current timestamp in milliseconds)
+# Output: list of games with appid, concurrent_in_game, rank
+def get_all_games(ranks_steam, current_time):
+    top_100_appid = set(str(game['appid']) for game in ranks_steam)
+
+    if not os.path.isfile(CSV_FILE_ALL_GAMES):
+        print(f"File not found: {CSV_FILE_ALL_GAMES}")
+        return []
+
+    remaining_games = []
+    # Calculate the cutoff time for the last 24 hours
+    time_cutoff = current_time - 86400000  
+
+    with open(CSV_FILE_ALL_GAMES, 'r', encoding='utf-8') as f:
+        reader = csv.DictReader(f)
+
+        for row in reader:
+            appid = row['appid']
+            if appid in top_100_appid:
+                continue
+
+            try:
+                last_entry = row['date_playerscount'].strip().rsplit(', ', 1)[-1]
+                timestamp_ms_str, last_player_count_str = last_entry.split(' ')
+                timestamp_ms = int(timestamp_ms_str)
+                last_player_count = int(last_player_count_str)
+
+                if not (time_cutoff <= timestamp_ms <= current_time):
+                    continue
+
+                row['concurrent_in_game'] = last_player_count
+                row['rank'] = 0
+                del row['date_playerscount']
+            except Exception as e:
+                print(f"Failed to parse player count for appid {appid}: {e}")
+                continue
+
+            remaining_games.append(row)
+
+    remaining_games.sort(key=lambda x: x['concurrent_in_game'], reverse=True)
+
+    for i, game in enumerate(remaining_games, start=101):
+        game['rank'] = i
+
+    return remaining_games[:2200]
 
 
 #########################################################
@@ -111,29 +166,48 @@ def fetch_game_metadata(appid: str):
 
 # Top Current Gasmes
 # Input: key
-# Output: rank, appid, concurrent_in_game, peak_in_game + name, header_image
+# Output: rank, appid, concurrent_in_game + name, header_image
 @app.route('/api/topcurrentgames')
 def get_top_current_games():
+    print("Fetching top current games from Steam API...")
     url = f"https://api.steampowered.com/ISteamChartsService/GetGamesByConcurrentPlayers/v1/?key={STEAM_API_KEY}"
     try:
-        res = requests.get(url)
-        data = res.json()
+        res_from_steam = requests.get(url)
+        data = res_from_steam.json()
         combine_data = []
-        ranks = data['response']['ranks']
+        steam_current_time = data['response']['last_update']
+        ranks_steam = data['response']['ranks']
 
-        for game in ranks:
-            appid = str(game['appid'])
-            metadata = fetch_game_metadata(appid)
+        try:
+            ranks_data = get_all_games(ranks_steam, steam_current_time * 1000)
+            all_ranks = ranks_steam + ranks_data
+ 
+            all_games = fetch_game_metadata()
+            
+            for game in all_ranks:
+                metadata = next((g for g in all_games if g['appid'] == str(game['appid'])), None)
+                if metadata is not None:
+                    game["name"] = metadata.get("name", "Unknown")
+                    game["header_image"] = metadata.get("header_image", "")
+                else:
+                    try_to_fetch = fetch_game_metadata(str(game["appid"]))
+                    if try_to_fetch:
+                        game["name"] = try_to_fetch["name"]
+                        game["header_image"] = try_to_fetch["header_image"]
+                    else:
+                        game["name"] = "Unknown"
+                        game["header_image"] = ""
 
-            combine_data.append({
-                "rank": game['rank'],
-                "appid": appid,
-                "concurrent_in_game": game['concurrent_in_game'],
-                "peak_in_game": game['peak_in_game'],
-                "name": metadata.get('name') if metadata else "Unknown",
-                "header_image": metadata.get('header_image') if metadata else ""
-            })
-
+                combine_data.append({
+                    "rank": game["rank"],
+                    "appid": game["appid"],
+                    "concurrent_in_game": game["concurrent_in_game"],
+                    "name": game["name"],
+                    "header_image": game["header_image"]
+                })
+        except Exception as e:
+            print(f"Error processing game metadata: {e}")
+            return jsonify({"error": "Failed to process game metadata"}), 500
         return jsonify(combine_data)
     except Exception as e:
         return jsonify({"error": str(e)}), 500

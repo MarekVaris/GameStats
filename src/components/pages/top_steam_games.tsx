@@ -81,6 +81,7 @@ const GameStats = () => {
                         <option value="25">25</option>
                         <option value="50">50</option>
                     </select>
+
                 </div>
                     {/* Displaying games (rows) */}
                     {/* Each game is a link to its own page */}
@@ -96,6 +97,11 @@ const GameStats = () => {
                             </li>
                         </Link>
                     ))}
+
+                <div className="number-of-data-rows">
+                    <p>Showing {(startIndex + 1) + "-" + (startIndex + currentGames.length)} of {games?.length ?? 0} Games</p>
+                </div>
+
                 {/* Changing page buttons */}
                 <div className="pagination">
                     {/* Back one page */}

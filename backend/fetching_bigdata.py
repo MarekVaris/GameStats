@@ -52,8 +52,6 @@ async def get_players_count_history_to_csv():
 
     fieldnames = ["appid", "name", "date_playerscount"]
 
-    results.sort(key=lambda x: int(x["appid"]), reverse=False)
-
     with open(CSV_FILE_PLAYERSCOUNT_HISTORY, "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()

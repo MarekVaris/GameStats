@@ -47,6 +47,12 @@ def check_csv_if_metadata_exist():
 # Input: appid
 # Output: appid, name, date_playerscount - for database
 def get_current_players(appid, name):
+    with open(CSV_FILE_ALL_GAMES, "r", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            if row["appid"] == str(appid):
+                return row
+
     try:
         if name is None or appid is None:
             raise ValueError("Appid and name must be provided.")
@@ -62,7 +68,8 @@ def get_current_players(appid, name):
             "name": name,
             "date_playerscount": ", ".join([f"{entry[0]} {entry[1]}" for entry in data])
         }
-        with open(CSV_FILE_ALL_GAMES, "a", encoding="utf-8") as f:
+
+        with open(CSV_FILE_ALL_GAMES, "a", newline="",  encoding="utf-8") as f:
             writer = csv.DictWriter(f, fieldnames=["appid", "name", "date_playerscount"])
             writer.writerow(all_data)
         return all_data
@@ -89,7 +96,7 @@ def fetch_game_metadata(appid: int = None):
             return []
 
     # Check if appid is valid            
-    if appid in BAD_APPIDS:
+    if str(appid) in BAD_APPIDS:
         return {
             "appid": appid,
             "name": "Unknown",
@@ -215,7 +222,7 @@ def get_all_games(current_time):
 @app.route("/api/topcurrentgames")
 def get_top_current_games():
     try:
-        combine_data = []
+        combine_data, all_ranks, all_games = [], [], []
         current_time = int(time.time() * 1000)
 
         all_ranks = get_all_games(current_time)
@@ -227,13 +234,14 @@ def get_top_current_games():
                 
                 if metadata is None:
                     print(f"Metadata not found in sored list for appid {game['appid']} trying to find.")
-                    metadata = next((g for g in reversed(all_games) if g["appid"] == game["appid"]), None)
 
                 if metadata is not None:
                     game["name"] = metadata.get("name", "Unknown")
                     game["header_image"] = metadata.get("header_image", "")
                 else:
                     try_to_fetch = fetch_game_metadata(int(game["appid"]))
+                    if try_to_fetch is None:
+                        continue
                     game["name"] = try_to_fetch["name"]
                     game["header_image"] = try_to_fetch["header_image"]
 

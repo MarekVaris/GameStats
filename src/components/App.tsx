@@ -17,8 +17,8 @@ const App = () => {
   return (
     <Router>
       <div className="App">
-        <Header />
         <QueryClientProvider client={client}>
+          <Header />
           <main className="container-main" style={{ 
                 backgroundImage: backgroundUrl ? `url(${backgroundUrl})` : 'none',
           }}>

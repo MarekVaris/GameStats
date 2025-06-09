@@ -85,7 +85,7 @@ def get_current_players(appid, name):
 # OR
 # Input: appid=None
 # Output: all metadata from CSV
-def fetch_game_metadata(appid: int = None):
+def fetch_game_metadata(appid = None):
     # If appid is None, return all metadata from CSV
     if appid is None:
         if check_csv_if_metadata_exist():
@@ -231,15 +231,11 @@ def get_top_current_games():
         try:
             for game in all_ranks:
                 metadata = look_for_data_in_sorted_list(all_games, int(game["appid"]))
-                
-                if metadata is None:
-                    print(f"Metadata not found in sored list for appid {game['appid']} trying to find.")
-
                 if metadata is not None:
                     game["name"] = metadata.get("name", "Unknown")
                     game["header_image"] = metadata.get("header_image", "")
                 else:
-                    try_to_fetch = fetch_game_metadata(int(game["appid"]))
+                    try_to_fetch = fetch_game_metadata(game["appid"])
                     if try_to_fetch is None:
                         continue
                     game["name"] = try_to_fetch["name"]
@@ -262,7 +258,6 @@ def get_top_current_games():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
 def look_for_data_in_sorted_list(sorted_list, appid):
     low, high = 0, len(sorted_list) - 1
     while low <= high:
@@ -274,8 +269,6 @@ def look_for_data_in_sorted_list(sorted_list, appid):
         else:
             high = mid - 1
     return None
-
-
 
 
 # Get Metadata from appid

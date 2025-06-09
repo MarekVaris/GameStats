@@ -59,7 +59,7 @@ async def get_players_count_history_to_csv():
             if result:
                 writer.writerow(result)
 
-# asyncio.run(get_players_count_history_to_csv())
+asyncio.run(get_players_count_history_to_csv())
 
 
 #########################################################

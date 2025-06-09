@@ -20,6 +20,19 @@
     border-radius: 13px;
 }
 
+/* Platforms */
+.platforms-wrapper-game-info{
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5em;
+    margin-bottom: 1em;
+}
+
+.platforms-wrapper-game-info img {
+    width: 3vw;
+    max-width: 2em;
+}
+
 /* Carousel buttons */
 .image-carousel-wrapper-game-info {
     position: relative;

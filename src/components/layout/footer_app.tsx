@@ -5,7 +5,7 @@ const Footer = () => {
         <footer>
             <div className="container-footer">
                 <div>
-                    <p>&copy; 2023 GameStats.</p>
+                    <p>&copy; 2025 GameStats.</p>
                 </div>
             </div>
         </footer>

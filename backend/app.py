@@ -15,7 +15,8 @@ BASE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
 STEAM_API_KEY = os.getenv("STEAM_API_KEY")
 
 CSV_FILE_METADATA = os.path.join(BASE_DIR, "SteamGamesMetadata.csv")
-CSV_FILE_ALL_GAMES = os.path.join(BASE_DIR, "Clean_SteamHistory_PCout.csv")
+CSV_FILE_ALL_HISTORY = os.path.join(BASE_DIR, "Clean_SteamHistory_PCout.csv")
+CSV_FILE_ALL_APPLIST = os.path.join(BASE_DIR, "SteamAppsList.csv")
 
 BAD_FETCHING_APPIDS_FILE = os.path.join(BASE_DIR, "bad_fetching_appids.txt")
 with open(BAD_FETCHING_APPIDS_FILE, "r", encoding="utf-8") as f:
@@ -47,7 +48,7 @@ def check_csv_if_metadata_exist():
 # Input: appid
 # Output: appid, name, date_playerscount - for database
 def get_current_players(appid, name):
-    with open(CSV_FILE_ALL_GAMES, "r", encoding="utf-8") as f:
+    with open(CSV_FILE_ALL_HISTORY, "r", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         for row in reader:
             if row["appid"] == str(appid):
@@ -69,7 +70,7 @@ def get_current_players(appid, name):
             "date_playerscount": ", ".join([f"{entry[0]} {entry[1]}" for entry in data])
         }
 
-        with open(CSV_FILE_ALL_GAMES, "a", newline="",  encoding="utf-8") as f:
+        with open(CSV_FILE_ALL_HISTORY, "a", newline="",  encoding="utf-8") as f:
             writer = csv.DictWriter(f, fieldnames=["appid", "name", "date_playerscount"])
             writer.writerow(all_data)
         return all_data
@@ -178,7 +179,7 @@ def get_all_games(current_time):
     # Calculate the cutoff time for the last 24 hours
     time_cutoff = current_time - 86400000  
 
-    with open(CSV_FILE_ALL_GAMES, "r", encoding="utf-8") as f:
+    with open(CSV_FILE_ALL_HISTORY, "r", encoding="utf-8") as f:
         reader = csv.DictReader(f)
 
         for row in reader:
@@ -284,6 +285,29 @@ def get_game_metadata(appid):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
+
+# Get all games applist
+# Input: query
+# Output: list of appids and names
+@app.route("/api/steam/search")
+def get_search_games():
+    try:
+        all_games = []
+
+        with open(CSV_FILE_ALL_APPLIST, "r", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                all_games.append({
+                    "appid": row["appid"],
+                    "name": row["name"]
+                })
+        if not all_games:
+            return jsonify({"error": "No games found"}), 404
+        return jsonify(all_games)
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 # RUN THE APP
 if __name__ == "__main__":

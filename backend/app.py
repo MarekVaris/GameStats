@@ -3,7 +3,6 @@ from flask_cors import CORS
 import os
 from dotenv import load_dotenv
 import requests
-import time
 import asyncio
 
 import csv_calling
@@ -16,6 +15,7 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app)
 
+USE_BQ = os.getenv("USE_BQ", "").lower() == "true"
 STEAM_API_KEY = os.getenv("STEAM_API_KEY")
 BAD_APPIDS = csv_calling.get_badappid_data()
 
@@ -34,14 +34,15 @@ fieldnames = [
 # Output: appid, name, date_playerscount - for database
 def get_current_history_playercouny(appid, name):
     
-    row = csv_calling.get_history_playercount_by_appid(appid)
+    if USE_BQ:
+        row = bigquery_calling.BQ_get_history_playercount_by_appid(appid)
+    else:
+        row = csv_calling.get_history_playercount_by_appid(appid)
+
     if row is not None:
         return row
     
     try:
-        if name is None or appid is None:
-            raise ValueError("Appid and name must be provided.")
-
         url = f"https://steamcharts.com/app/{appid}/chart-data.json"
         res = requests.get(url, timeout=10)
         data = res.json()
@@ -161,11 +162,6 @@ def get_all_top_games_sored():
 @app.route("/api/topcurrentgames")
 def get_top_current_games():
 
-    current_time = int(time.time() * 1000)
-
-    # if current_time - csv_calling.get_last_update_time() < 43200000:
-    #     asyncio.run(fetching_bigdata_csv.get_players_count_history_to_csv())
-
     try:
         combine_data, all_ranks, all_games = [], [], []
 
@@ -220,6 +216,14 @@ def look_for_data_in_sorted_list(sorted_list, appid):
 # Output: appid, name, header_image
 @app.route("/api/steam/game/<appid>")
 def get_game_metadata(appid):
+    if USE_BQ:
+        print("Using BigQuery for metadata")
+    else:
+        print("Using CSV for metadata")
+    return "eo"
+    if not appid.isdigit():
+        return jsonify({"error": "Invalid appid format"}), 400
+
     try:
         metadata = fetch_game_metadata(appid)
         if metadata:
@@ -227,7 +231,6 @@ def get_game_metadata(appid):
         return jsonify({"error": "Game not found"}), 404
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
 
 
 # Get all games applist
@@ -249,14 +252,13 @@ def get_search_games():
 
 
 
-@app.route("/update", methods=["POST"])
-def update_entrypoint():
-    if bigquery_calling.try_acquire_lock():
-        # task_name = bigquery_calling.create_cloud_task()
-        return jsonify({"status": "Update task enqueued"}), 202
-        # return jsonify({"status": "Update task enqueued", "task": task_name}), 202
-    else:
-        return jsonify({"status": "Update already running or not due"}), 200
+# @app.route("/update", methods=["POST"])
+# def update_entrypoint():
+#     if bigquery_calling.try_acquire_lock():
+#         task_name = bigquery_calling.create_cloud_task()
+#         return jsonify({"status": "Update task enqueued", "task": task_name}), 202
+#     else:
+#         return jsonify({"status": "Update already running or not due"}), 200
 
 @app.route("/update-task", methods=["POST"])
 def update_task_handler():

@@ -58,6 +58,7 @@ def release_lock():
 
 def upload_to_bigquery(all_data):
     df = pd.DataFrame(all_data)
+    df = df.drop_duplicates(subset=["appid","name","date_playerscount"])
 
     job = client_bq.load_table_from_dataframe(
         df,
@@ -65,3 +66,34 @@ def upload_to_bigquery(all_data):
         job_config=bigquery.LoadJobConfig(write_disposition="WRITE_TRUNCATE"),
     )
     job.result()
+
+
+
+fieldnames = [
+    "appid", "name", "header_image", "short_description", "developers",
+    "publishers", "release_date", "platforms", "price", "categories",
+    "genres", "website", "screenshots", "background"
+]
+
+def BQ_get_history_playercount_by_appid(appid):
+    query = f"""
+        SELECT *
+        FROM `{HISTORY_TABLE}`
+        WHERE appid = @appid
+        LIMIT 1
+    """
+    job_config = bigquery.QueryJobConfig(
+        query_parameters=[
+            bigquery.ScalarQueryParameter("appid", "STRING", appid)
+        ]
+    )
+    
+    try:
+        query_job = client_bq.query(query, job_config=job_config)
+        result = query_job.result()
+
+    except Exception as e:
+        print(f"Error fetching player count history for appid {appid}: {e}")
+        return None
+
+    return result

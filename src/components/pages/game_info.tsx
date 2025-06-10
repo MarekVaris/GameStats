@@ -57,7 +57,7 @@ const GameInfo = ({ setBackgroundUrl }: GameInfoProps) => {
         staleTime: 1000 * 60 * 5, // Cache for 5 minutes
         refetchOnWindowFocus: false,
         retry: (failureCount, error: any) => {
-        if (error?.status === 404) {
+        if (error?.status === 404 || error?.status === 400 || error?.status === 500) {
             return false;
         }
         return failureCount < 2;

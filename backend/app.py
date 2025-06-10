@@ -3,24 +3,21 @@ from flask_cors import CORS
 import os
 from dotenv import load_dotenv
 import requests
-import csv 
 import time
+import asyncio
+
+import csv_calling
+import fetching_bigdata_csv
+import bigquery_calling
+
 
 load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
 
-BASE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
 STEAM_API_KEY = os.getenv("STEAM_API_KEY")
-
-CSV_FILE_METADATA = os.path.join(BASE_DIR, "SteamGamesMetadata.csv")
-CSV_FILE_ALL_HISTORY = os.path.join(BASE_DIR, "Clean_SteamHistory_PCout.csv")
-CSV_FILE_ALL_APPLIST = os.path.join(BASE_DIR, "SteamAppsList.csv")
-
-BAD_FETCHING_APPIDS_FILE = os.path.join(BASE_DIR, "bad_fetching_appids.txt")
-with open(BAD_FETCHING_APPIDS_FILE, "r", encoding="utf-8") as f:
-    BAD_APPIDS = set(line.strip() for line in f if line.strip())
+BAD_APPIDS = csv_calling.get_badappid_data()
 
 #########################################################
 #####################   FUNCTIONS   #####################
@@ -31,29 +28,16 @@ fieldnames = [
     "publishers", "release_date", "platforms", "price", "categories",
     "genres", "website", "screenshots", "background"
 ]
-
-# JUST FOR NOW IN CSV
-# creating a CSV file if it doesn"t exist
-# with the headers: appid, name, header_image
-def check_csv_if_metadata_exist():
-    if not os.path.isfile(CSV_FILE_METADATA):
-        with open(CSV_FILE_METADATA, "w", encoding="utf-8") as f:
-            writer = csv.DictWriter(f, fieldnames=fieldnames)
-            writer.writeheader()
-        return False
-    else:
-        return True
     
 # Get current playes for game
 # Input: appid
 # Output: appid, name, date_playerscount - for database
-def get_current_players(appid, name):
-    with open(CSV_FILE_ALL_HISTORY, "r", encoding="utf-8") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            if row["appid"] == str(appid):
-                return row
-
+def get_current_history_playercouny(appid, name):
+    
+    row = csv_calling.get_history_playercount_by_appid(appid)
+    if row is not None:
+        return row
+    
     try:
         if name is None or appid is None:
             raise ValueError("Appid and name must be provided.")
@@ -70,9 +54,8 @@ def get_current_players(appid, name):
             "date_playerscount": ", ".join([f"{entry[0]} {entry[1]}" for entry in data])
         }
 
-        with open(CSV_FILE_ALL_HISTORY, "a", newline="",  encoding="utf-8") as f:
-            writer = csv.DictWriter(f, fieldnames=["appid", "name", "date_playerscount"])
-            writer.writerow(all_data)
+        csv_calling.add_history_playercount(all_data)
+
         return all_data
 
     except Exception as e:
@@ -89,12 +72,7 @@ def get_current_players(appid, name):
 def fetch_game_metadata(appid = None):
     # If appid is None, return all metadata from CSV
     if appid is None:
-        if check_csv_if_metadata_exist():
-            with open(CSV_FILE_METADATA, "r", encoding="utf-8") as f:
-                reader = csv.DictReader(f)
-                return [row for row in reader]
-        else:
-            return []
+        return csv_calling.get_all_metadata()
 
     # Check if appid is valid            
     if str(appid) in BAD_APPIDS:
@@ -104,20 +82,11 @@ def fetch_game_metadata(appid = None):
             "header_image": "",
         }
     
-    # Check if the CSV file exists and has the metadata
-    if check_csv_if_metadata_exist():
-        with open(CSV_FILE_METADATA, "r", encoding="utf-8") as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                if row["appid"] == str(appid):
-                    result = {}
-                    for data in fieldnames:
-                        if data in ["platforms", "categories", "genres", "screenshots"]:
-                            result[data] = row[data].split(", ") if row[data] else []
-                        else:
-                            result[data] = row[data]
-                    get_current_players(appid, row["name"])
-                    return result
+    # Check if CSV has the metadata
+    result = csv_calling.get_metadata_by_appid(appid)
+    if result is not None:
+        get_current_history_playercouny(appid, result["name"])
+        return result
 
     # If the appid is not found in the CSV, fetch from API and save to CSV
     url = f"https://store.steampowered.com/api/appdetails?appids={appid}"
@@ -127,9 +96,8 @@ def fetch_game_metadata(appid = None):
 
         # Check if data is valid, if not adds appid to the list of bad appids
         if not data.get(appid, {}).get("success"):
-            with open(BAD_FETCHING_APPIDS_FILE, "a", encoding="utf-8") as f:
-                f.write(appid + "\n")
-            BAD_APPIDS.add(appid)
+            csv_calling.add_badappid(appid)
+            BAD_APPIDS.add(str(appid))
             raise ValueError(f"App ID {appid} not found or API request failed.")
     
     except Exception as e:
@@ -156,16 +124,15 @@ def fetch_game_metadata(appid = None):
     }
 
     # Save the result
-    with open(CSV_FILE_METADATA, "a", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
-        writer.writerow(result)
+    csv_calling.add_metadata(result)
 
     for data in fieldnames:
         if data in ["platforms", "categories", "genres", "screenshots"]:
             result[data] = result[data].split(", ") if result[data] else []
         else:
             result[data] = result[data]
-    get_current_players(appid, result["name"])
+
+    get_current_history_playercouny(appid, result["name"])
     return result
 
 
@@ -173,38 +140,9 @@ def fetch_game_metadata(appid = None):
 # Get all games from CSV file
 # Input: current_time (current timestamp in milliseconds)
 # Output: list of games with appid, concurrent_in_game, rank
-def get_all_games(current_time):
-    all_games_return = []
+def get_all_top_games_sored():
 
-    # Calculate the cutoff time for the last 24 hours
-    time_cutoff = current_time - 86400000  
-
-    with open(CSV_FILE_ALL_HISTORY, "r", encoding="utf-8") as f:
-        reader = csv.DictReader(f)
-
-        for row in reader:
-            appid = row["appid"]
-            if appid in BAD_APPIDS:
-                continue
-
-            try:
-                last_entry = row["date_playerscount"].split(", ")[-1]
-                timestamp_ms_str, last_player_count_str = last_entry.split(" ")
-                timestamp_ms = int(timestamp_ms_str)
-                last_player_count = int(last_player_count_str)
-
-                if not (time_cutoff <= timestamp_ms <= current_time):
-                    continue
-
-                row["concurrent_in_game"] = last_player_count
-                del row["date_playerscount"]
-            except Exception as e:
-                print(f"Failed to parse player count for appid {appid}: {e}")
-                continue
-
-            all_games_return.append(row)
-
-    all_games_return.sort(key=lambda x: x["concurrent_in_game"], reverse=True)
+    all_games_return = csv_calling.get_from_histroy_playercount_by_time_sorted(BAD_APPIDS)
 
     for i, game in enumerate(all_games_return, start=1):
         game["rank"] = i
@@ -222,11 +160,16 @@ def get_all_games(current_time):
 # Output: rank, appid, concurrent_in_game + name, header_image
 @app.route("/api/topcurrentgames")
 def get_top_current_games():
+
+    current_time = int(time.time() * 1000)
+
+    # if current_time - csv_calling.get_last_update_time() < 43200000:
+    #     asyncio.run(fetching_bigdata_csv.get_players_count_history_to_csv())
+
     try:
         combine_data, all_ranks, all_games = [], [], []
-        current_time = int(time.time() * 1000)
 
-        all_ranks = get_all_games(current_time)
+        all_ranks = get_all_top_games_sored()
         all_games = fetch_game_metadata()
             
         try:
@@ -293,21 +236,42 @@ def get_game_metadata(appid):
 @app.route("/api/steam/search")
 def get_search_games():
     try:
-        all_games = []
-
-        with open(CSV_FILE_ALL_APPLIST, "r", encoding="utf-8") as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                all_games.append({
-                    "appid": row["appid"],
-                    "name": row["name"]
-                })
+        all_games = csv_calling.get_all_steam_games()
+        
         if not all_games:
             return jsonify({"error": "No games found"}), 404
+        
         return jsonify(all_games)
     
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+
+
+
+@app.route("/update", methods=["POST"])
+def update_entrypoint():
+    if bigquery_calling.try_acquire_lock():
+        # task_name = bigquery_calling.create_cloud_task()
+        return jsonify({"status": "Update task enqueued"}), 202
+        # return jsonify({"status": "Update task enqueued", "task": task_name}), 202
+    else:
+        return jsonify({"status": "Update already running or not due"}), 200
+
+@app.route("/update-task", methods=["POST"])
+def update_task_handler():
+    try:
+        all_data = asyncio.run(fetching_bigdata_csv.get_players_count_history_to_csv())
+        print(f"Fetched {len(all_data)} entries from CSV.")
+        bigquery_calling.upload_to_bigquery(all_data)
+
+        return jsonify({"status": "Update finished"}), 200
+    except Exception as e:
+        print(f"Update failed: {e}")
+        return jsonify({"error": str(e)}), 500
+    finally:
+        bigquery_calling.release_lock()
+
 
 # RUN THE APP
 if __name__ == "__main__":

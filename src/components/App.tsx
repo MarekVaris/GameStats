@@ -19,14 +19,14 @@ const App = () => {
       <div className="App">
         <QueryClientProvider client={client}>
           <Header />
-          <main className="container-main" style={{ 
-                backgroundImage: backgroundUrl ? `url(${backgroundUrl})` : 'none',
-          }}>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/TopSteamGames" element={<TopSteamGames />} />
-            <Route path="/game/:appid" element={<GameInfo setBackgroundUrl={setBackgroundUrl} />} />
-          </Routes>
+            <main className="container-main" style={{ 
+                  backgroundImage: backgroundUrl ? `url(${backgroundUrl})` : 'none',
+            }}>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/TopSteamGames" element={<TopSteamGames />} />
+              <Route path="/game/:appid" element={<GameInfo setBackgroundUrl={setBackgroundUrl} />} />
+            </Routes>
           </main>
         </QueryClientProvider>
         <Footer />

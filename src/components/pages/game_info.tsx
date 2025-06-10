@@ -5,6 +5,12 @@ import "../../styles/game_info.css";
 
 import { fetchGame } from "../../api/steam_games";
 
+import windowsIcon from '../../assets/platform_icons/windows.png';
+import macIcon from '../../assets/platform_icons/mac.png';
+import linuxIcon from '../../assets/platform_icons/linux.png';
+import androidIcon from '../../assets/platform_icons/android.png';
+import unknownIcon from '../../assets/platform_icons/unknown.png';
+
 // Type definition for game metadata from API
 type GameMetadata = {
     appid: number;
@@ -29,8 +35,16 @@ interface GameInfoProps {
 }
 
 const GameInfo = ({ setBackgroundUrl }: GameInfoProps) => {
-    const { appid } = useParams<string>(); // Get app ID from URL
-    const [focusImage, setFocusImage] = useState<string | null>(null); // State for focused screenshot
+    const { appid } = useParams<string>();
+    const [focusImage, setFocusImage] = useState<string | null>(null);
+
+    // Default focus image to the first screenshot if available
+    const platforms: Record<string, string> = {
+        windows: windowsIcon,
+        mac: macIcon,
+        linux: linuxIcon,
+        android: androidIcon,
+    };
 
     // Fetch game metadata using React Query
     const {
@@ -42,7 +56,16 @@ const GameInfo = ({ setBackgroundUrl }: GameInfoProps) => {
         queryFn: () => fetchGame(appid),
         staleTime: 1000 * 60 * 5, // Cache for 5 minutes
         refetchOnWindowFocus: false,
+        retry: (failureCount, error: any) => {
+        if (error?.status === 404) {
+            return false;
+        }
+        return failureCount < 2;
+    },
     });
+    
+    // Ref to image list container
+    const imageListRef = useRef<HTMLDivElement>(null); 
 
     // Set page background when metadata is available, clean up on unmount
     useEffect(() => {
@@ -53,8 +76,13 @@ const GameInfo = ({ setBackgroundUrl }: GameInfoProps) => {
             setBackgroundUrl('');
         };
     }, [metadata?.background, setBackgroundUrl]);
-
-    const imageListRef = useRef<HTMLDivElement>(null); // Ref to image list container
+    
+    if (error) {
+        return <p>Error loading game data: {error.message}</p>; 
+    }
+    if (isLoading) {
+        return <p>Loading game data...</p>;
+    }
 
     // Scroll carousel left or right
     const scrollImages = (direction: number) => {
@@ -73,14 +101,30 @@ const GameInfo = ({ setBackgroundUrl }: GameInfoProps) => {
             {/* Screenshots and image carousel */}
             {Array.isArray(metadata?.screenshots) && metadata.screenshots.length > 0 ? (
                 <div className="screenshots-game-info">
-                    <h1>{metadata.name}</h1>
+                    <div> 
+                        <h1>{metadata.name}</h1>
+                        <div className="platforms-wrapper-game-info">
+                            {metadata.platforms && metadata.platforms.length > 0 ? (
+                                metadata.platforms.map((platform) => (
+                                    <img 
+                                        key={platform}
+                                        src={platforms[platform] || unknownIcon}
+                                        alt={platform}
+                                        className="platform-icon-game-info">
+                                    </img>
+                                ))) : (
+                                <p>No platforms available.</p>
+                            )}   
+                        </div>
+                    </div>
                     <div className="header-game-info">
                         <img
                             src={focusImage || metadata.screenshots[0]}
                             alt={metadata.name}
                         />
                     </div>
-
+                    
+                    { /* Image carousel for screenshots */}
                     <div className="image-carousel-wrapper-game-info">
                         <button className="scroll-button left" onClick={() => scrollImages(0)}>◀</button>
 

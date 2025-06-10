@@ -17,8 +17,7 @@ type Game = {
 }
 
 const GameStats = () => {
-    const [currentPage, setCurrentPage] = useState(1)
-    const [itemsPerPage, setItemsPerPage] = useState(25)
+
 
     // Fetch top Steam games when the component mounts
     const {
@@ -33,37 +32,49 @@ const GameStats = () => {
     });
 
     // Calculate total pages and current games to display based on the current page and items per page
+    const [itemsPerPage, setItemsPerPage] = useState(25)
     const totalPages = Math.ceil((games?.length ?? 0) / itemsPerPage)
+
+    // Save the current page in session storage
+    const [currentPage, setCurrentPage] = useState(() => {
+        const saved = sessionStorage.getItem('currentPage');
+        if (saved) {
+            if (parseInt(saved) > totalPages) {
+                return 1;
+            }
+            return parseInt(saved);
+        }
+        return 1;
+    });
+
     const startIndex = (currentPage - 1) * itemsPerPage
     const currentGames = (games ?? []).slice(startIndex, startIndex + itemsPerPage)
 
-    // Function to handle going forward one page
-    const handleNext = () => {
-        if (currentPage < totalPages) setCurrentPage((prev) => prev + 1)
-    }
-    // Function to handle going back one page
-    const handlePrev = () => {
-        if (currentPage > 1) setCurrentPage((prev) => prev - 1)
-    }
-
-    // Function to handle page change when a number is clicked
+    // Function to handle page change
     const handlePageChange = (page: number) => {
         setCurrentPage(page)
+        sessionStorage.setItem('currentPage', page.toString());
     }
 
-    // Function to generate the page numbers to display
+    // Generating the page numbers to display
     const pageCount = () => {
-        const start = Math.max(2, currentPage - SHOW_PAGES)
-        const end = Math.min(totalPages - 1, currentPage + SHOW_PAGES)
+        let start = Math.max(2, currentPage - SHOW_PAGES)
+        let end = Math.min(totalPages - 1, currentPage + SHOW_PAGES)
         const pages = []
 
         pages.push(1)
+        if (start > 2) { pages.push('...') }
         
-        if (start > 2) {pages.push('...')}
+        if (end - start < 2 * SHOW_PAGES) {
+            end = Math.min(start + 2 * SHOW_PAGES, totalPages - 1)
+            start = Math.max(end - 2 * SHOW_PAGES, 2)
+        }
+
         for (let i = start; i <= end; i++) {
             pages.push(i)
         }
-        if (end < totalPages - 1) {pages.push('...')}
+
+        if (end < totalPages - 1) { pages.push('...') }
         pages.push(totalPages)
         
         return pages
@@ -105,7 +116,7 @@ const GameStats = () => {
                 {/* Changing page buttons */}
                 <div className="pagination">
                     {/* Back one page */}
-                    <button onClick={handlePrev} disabled={currentPage === 1}>
+                    <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
                         Prev
                     </button>
                     {/* Setting up numbers - From list check if current is "..." else put number */}
@@ -120,7 +131,7 @@ const GameStats = () => {
                         </button>
                     ))}
                     {/* Forward one page */}
-                    <button onClick={handleNext} disabled={currentPage === totalPages}>
+                    <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
                         Next
                     </button>
                 </div>

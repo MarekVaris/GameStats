@@ -88,8 +88,8 @@ def fetch_steam_apps_list():
 
 # Sorting metadata CSV file by appid
 # Output: sorted CSV file by appid
-def sort_all_data():
-    fieldnames = [
+def sort_all_metadata():
+    fieldnames_metadata = [
         "appid", "name", "header_image", "short_description", "developers",
         "publishers", "release_date", "platforms", "price", "categories",
         "genres", "website", "screenshots", "background"
@@ -100,18 +100,8 @@ def sort_all_data():
         rows = list(reader)
     rows.sort(key=lambda x: int(x["appid"]))
     with open(CSV_FILE_APPLIST, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer = csv.DictWriter(f, fieldnames=fieldnames_metadata)
         writer.writeheader()
         writer.writerows(rows)
 
-    # Sort players count history CSV file by appid
-    with open(CSV_FILE_PLAYERSCOUNT_HISTORY, "r", encoding="utf-8") as f:
-        reader = csv.DictReader(f)
-        rows = list(reader)
-    rows.sort(key=lambda x: int(x["appid"]))
-    with open(CSV_FILE_PLAYERSCOUNT_HISTORY, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=["appid", "name", "date_playerscount"])
-        writer.writeheader()
-        writer.writerows(rows)
-
-sort_all_data()
+sort_all_metadata()

@@ -7,7 +7,17 @@ export const fetchTopSteamGames = async () => {
 };
 
 export const fetchGame = async (appid: string | undefined) => {
-  const res = await fetch(API_URL + "steam/game/"+appid);
+  const res = await fetch(API_URL + "steam/game/" + appid);
+  if (!res.ok) {
+    const error: any = new Error('Failed to fetch');
+    error.status = res.status;
+    throw error;
+  }
+  return res.json();
+};
+
+export const searchForGamesAllList = async () => {
+  const res = await fetch(API_URL + "steam/search");
   if (!res.ok) throw new Error('Failed to fetch');
   return res.json();
 };

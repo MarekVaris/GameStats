@@ -97,7 +97,7 @@
 
   .search-form input[type="text"],
   .search-form button {
-        width: 100%;
+        width: 20%;
   }
 
   .app-header nav {
@@ -108,4 +108,27 @@
   .app-header nav a {
         margin: 0.25rem 0.75rem;
   }
+}
+
+/* Search suggestions dropdown */
+.search-suggestions {
+    list-style: none;
+    background: #2f363e;
+    margin: 4px 0 0 0;
+    position: absolute;
+    top: 100%;
+    width: 100%;
+    z-index: 1000;
+}
+
+.search-suggestions li {
+    padding: 8px 12px;
+    cursor: pointer;
+}
+
+.search-suggestions li a {
+    color: inherit;
+    text-decoration: none;
+    display: block;
+    width: 100%;
 }

@@ -86,7 +86,7 @@ def BQ_get_history_playercount_by_appid(appid):
     )
     
     try:
-        df = client_bq.query(query, job_config=job_config).to_dataframe()
+        df = client_bq.query(query, job_config=job_config).to_dataframe(bqstorage_client=client_storage)
         result = df.to_dict('records')
         return result
 
@@ -110,7 +110,7 @@ def BQ_add_history_playercount(data):
     try:
         query_job = client_bq.query(query, job_config=job_config)
         query_job.result()
-        return data
+        return query_job
 
     except Exception as e:
         print(f"Error inserting player count history for appid {data['appid']}: {e}")
@@ -181,7 +181,7 @@ def BQ_get_metadata_by_appid(appid):
         ]
     )
     try:
-        df = client_bq.query(query, job_config=job_config).to_dataframe()
+        df = client_bq.query(query, job_config=job_config).to_dataframe(bqstorage_client=client_storage)
         rows = df.to_dict('records')
 
         if not rows:
@@ -224,9 +224,9 @@ def BQ_get_all_steam_games():
         FROM `{PROJECT_ID}.GameStats.all_steam_apps`
     """
     try:
-        query_job = client_bq.query(query)
-        results = query_job.result()
-        return [{"appid": row.appid, "name": row.name} for row in results]
+        df = client_bq.query(query).to_dataframe(bqstorage_client=client_storage)
+        results = df.to_dict('records')
+        return results
     
     except Exception as e:
         print(f"Error fetching all steam games: {e}")

@@ -50,7 +50,7 @@ def add_history_playercount(data):
         writer = csv.DictWriter(f, fieldnames=["appid", "name", "date_playerscount"])
         writer.writerow(data)
 
-def get_from_histroy_playercount_by_time_sorted(BAD_APPIDS):
+def get_current_history_playercount_sorted(BAD_APPIDS):
     all_games_return = []
     
     with open(CSV_FILE_ALL_HISTORY, "r", encoding="utf-8") as f:
@@ -94,13 +94,10 @@ def get_metadata_by_appid(appid):
             reader = csv.DictReader(f)
             for row in reader:
                 if row["appid"] == str(appid):
-                    result = {}
                     for data in fieldnames:
                         if data in ["platforms", "categories", "genres", "screenshots"]:
-                            result[data] = row[data].split(", ") if row[data] else []
-                        else:
-                            result[data] = row[data]
-                    return result
+                            row[data] = row[data].split(", ") if row[data] else []
+                    return row
     return None
 
 def add_metadata(data):

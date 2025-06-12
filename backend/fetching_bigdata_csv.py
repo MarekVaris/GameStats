@@ -35,7 +35,7 @@ async def fetch_chart_data(session, appid, name):
 async def get_players_count_history_to_csv():
     appids = []
     names = []
-    with open(TXT_FILE_BAD_FETCHING_APPIDS, "r", encoding="utf-8") as f:
+    with open(CSV_FILE_PLAYERSCOUNT_HISTORY, "r", encoding="utf-8") as f:
         bad_appids = set(line.strip() for line in f if line.strip())
 
     with open(CSV_FILE_APPLIST, "r", encoding="utf-8") as f:

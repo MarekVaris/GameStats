@@ -5,11 +5,11 @@ from dotenv import load_dotenv
 import requests
 import asyncio
 from flask_executor import Executor
+import time
 
 import csv_calling
 import fetching_bigdata_csv
 import bigquery_calling
-
 
 load_dotenv()
 
@@ -21,6 +21,12 @@ CORS(app)
 USE_BQ = os.getenv("USE_BQ", "").lower() == "true"
 STEAM_API_KEY = os.getenv("STEAM_API_KEY")
 BAD_APPIDS = csv_calling.get_badappid_data()
+
+CACHE_DURATION = 12 * 60 * 60
+
+cache_last_fetch_timestamp = 0
+cache_game_ranking_topcurplayers= []
+cache_all_games_metadata = []
 
 #########################################################
 #####################   FUNCTIONS   #####################
@@ -90,16 +96,29 @@ def fetch_game_metadata(appid = None):
             "name": "Unknown",
             "header_image": "",
         }
-    
-    # Check if CSV has the metadata
+
+    global cache_all_games_metadata
+    result = None
+    # Check if appid is already in cache
     if USE_BQ:
-        result = bigquery_calling.BQ_get_metadata_by_appid(appid)
+        if cache_all_games_metadata:
+            for row in cache_all_games_metadata:
+                if int(row["appid"]) == int(appid):
+                    result = row.copy()
+                    for data in fieldnames:
+                        if data in ["platforms", "categories", "genres", "screenshots"]:
+                            result[data] = result[data].split(", ") if result[data] else []
+        if result is None:
+            # If cache is empty, fetch from BigQuery
+            result = bigquery_calling.BQ_get_metadata_by_appid(appid)
     else:
         result = csv_calling.get_metadata_by_appid(appid)
+
+    # If result is found in cache or CSV, return it
     if result is not None:
         return result
     
-    # If the appid is not found in the CSV, fetch from API and save to CSV
+    # If not found in cache or CSV, fetch from API
     url = f"https://store.steampowered.com/api/appdetails?appids={appid}"
     try:
         res = requests.get(url, timeout=10)
@@ -115,7 +134,7 @@ def fetch_game_metadata(appid = None):
         print(f"Error fetching metadata for appid {appid}: {e}")
         return None
 
-    # Changing the data structure to the format
+    # Parse the response data
     game_data = data[appid]["data"]
     result = {
         "appid": appid,
@@ -134,7 +153,7 @@ def fetch_game_metadata(appid = None):
         "background": game_data.get("background")
     }
 
-    # Save the result
+    # Add metadata to BigQuery or CSV
     if USE_BQ:
         bigquery_calling.BQ_add_metadata(result)
     else:
@@ -157,6 +176,7 @@ def get_all_top_games_sored():
         all_games_return = bigquery_calling.BQ_get_current_history_playercount_sorted(BAD_APPIDS)
     else:
         all_games_return = csv_calling.get_current_history_playercount_sorted(BAD_APPIDS)
+
     for i, game in enumerate(all_games_return, start=1):
         game["rank"] = i
 
@@ -174,25 +194,32 @@ def get_all_top_games_sored():
 @app.route("/api/topcurrentgames")
 def get_top_current_games():
     try:
-        combine_data, all_ranks, all_games = [], [], []
+        combine_data = []
         try:
-
             if USE_BQ:
-                exec_all_ranks = executor.submit(get_all_top_games_sored)
-                exec_all_games = executor.submit(fetch_game_metadata)
+                global cache_last_fetch_timestamp, cache_game_ranking_topcurplayers, cache_all_games_metadata
 
-                all_ranks = exec_all_ranks.result()
-                all_games = exec_all_games.result()
+                if not cache_all_games_metadata or not cache_game_ranking_topcurplayers or \
+                   (int(time.time()) - cache_last_fetch_timestamp >= CACHE_DURATION):
+                    print("Cache expired or empty, fetching new data.")
+                    exec_all_ranks = executor.submit(get_all_top_games_sored)
+                    exec_all_games = executor.submit(fetch_game_metadata)
+
+                    cache_game_ranking_topcurplayers = exec_all_ranks.result()
+                    cache_all_games_metadata = exec_all_games.result()
+                    cache_last_fetch_timestamp = int(time.time())
             else:
-                all_ranks = get_all_top_games_sored()
-                all_games = fetch_game_metadata()
+                cache_game_ranking_topcurplayers = get_all_top_games_sored()
+                cache_all_games_metadata = fetch_game_metadata()
+
+
         except Exception as e:
             print(f"Error fetching data: {e}")
             return jsonify({"error": "Failed to fetch data"}), 500
 
         try:
-            for game in all_ranks:
-                metadata = look_for_data_in_sorted_list(all_games, int(game["appid"]))
+            for game in cache_game_ranking_topcurplayers:
+                metadata = look_for_data_in_sorted_list(cache_all_games_metadata, int(game["appid"]))
                 if metadata is not None:
                     game["name"] = metadata.get("name", "Unknown")
                     game["header_image"] = metadata.get("header_image", "")
@@ -239,7 +266,7 @@ def look_for_data_in_sorted_list(sorted_list, appid):
 # Output: appid, name, header_image
 @app.route("/api/steam/game/<appid>")
 def get_game_metadata(appid):
-    if not appid.isdigit():
+    if appid is None or not appid.isdigit():
         return jsonify({"error": "Invalid appid format"}), 400
 
     try:

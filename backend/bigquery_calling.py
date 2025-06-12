@@ -86,7 +86,7 @@ def BQ_get_history_playercount_by_appid(appid):
     )
     
     try:
-        df = client_bq.query(query, job_config=job_config).to_dataframe(bqstorage_client=client_storage)
+        df = client_bq.query(query, job_config=job_config).to_arrow(bqstorage_client=client_storage).to_pandas()
         result = df.to_dict('records')
         return result
 
@@ -122,6 +122,7 @@ def BQ_get_current_history_playercount_sorted(BAD_APPIDS):
         FROM `{HISTORY_TABLE}`
         WHERE appid NOT IN UNNEST(@bad_appids)
         ORDER BY concurrent_in_game DESC
+        LIMIT 7000
     """
     job_config = bigquery.QueryJobConfig(
         query_parameters=[
@@ -130,9 +131,8 @@ def BQ_get_current_history_playercount_sorted(BAD_APPIDS):
     )
 
     try:
-        df = client_bq.query(query, job_config=job_config).to_dataframe(bqstorage_client=client_storage)
+        df = client_bq.query(query, job_config=job_config).to_arrow(bqstorage_client=client_storage).to_pandas()
         results = df.to_dict('records')
-
         return results
     
     except Exception as e:
@@ -159,7 +159,7 @@ def BQ_get_all_metadata():
     """
 
     try:
-        df = client_bq.query(query).to_dataframe(bqstorage_client=client_storage)
+        df = client_bq.query(query).to_arrow(bqstorage_client=client_storage).to_pandas()
         results = df.to_dict('records')
         return results
 
@@ -199,18 +199,32 @@ def BQ_get_metadata_by_appid(appid):
         return None
 
 def BQ_add_metadata(data):
+    columns = ", ".join(data.keys())
+    placeholders = ", ".join([f"@{k}" for k in data.keys()])
+
     query = f"""
-        INSERT INTO `{METADATA_TABLE}` ({", ".join(fieldnames)})
-        VALUES ({", ".join([field for field in data])})
+        INSERT INTO `{METADATA_TABLE}` ({columns})
+        VALUES ({placeholders})
     """
 
+    query_params = []
+    for key, value in data.items():
+        if key == "appid":
+            param_type = "INTEGER"
+        else:
+            param_type = "STRING"
+        query_params.append(bigquery.ScalarQueryParameter(key, param_type, value))
+
+    job_config = bigquery.QueryJobConfig(query_parameters=query_params)
+
     try:
-        query_job = client_bq.query(query)
+        query_job = client_bq.query(query, job_config=job_config)
         query_job.result()
+        print(f"Metadata for appid inserted successfully.")
         return data
     
     except Exception as e:
-        print(f"Error inserting metadata for appid {data['appid']}: {e}")
+        print(f"Error inserting metadata for appid {data.get('appid', 'unknown')}: {e}")
         return None
     
 

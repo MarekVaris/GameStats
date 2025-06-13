@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom';
 import '../../styles/top_current_games.css'
 
 import { fetchTopSteamGames } from '../../api/steam_games';
-
 const SHOW_PAGES = 1
 
 // Define the structure of a Game object
@@ -27,7 +26,6 @@ const GameStats = () => {
     } = useQuery<Game[]>({
         queryKey: ['topSteamGames'],
         queryFn: fetchTopSteamGames,
-        staleTime: 1000 * 60 * 5,
         refetchOnWindowFocus: false,
     });
 

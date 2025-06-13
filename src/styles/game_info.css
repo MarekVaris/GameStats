@@ -169,6 +169,77 @@
     color: #61dafb;
 }
 
+/* Date input */
+.date-input-wrapper {
+  display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+    padding: 1em;
+    background-color: #1e1e1e;
+    border-radius: 12px;
+}
+
+.date-fields {
+    display: flex;
+    gap: 1em;
+    color: #61dafb;;
+}
+
+.date-fields label {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.date-input {
+    border: 1px solid #61dafb;
+    border-radius: 6px;
+    padding: 0.5em;
+    background: #2f2f2f;
+    color: #ffffff;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.date-input:focus {
+    border-color: #a6f0ff;
+}
+
+/* Date buttons */
+.date-buttons-wrapper {
+    display: flex;
+    justify-content: center;
+    gap: 0.5em;
+}
+
+.date-button {
+    padding: 0.5em 1em;
+    color: white;
+    font-size: 0.95rem;
+    cursor: pointer;
+}
+
+.month-button {
+    background-color: #54399e;
+}
+.month-button:hover {
+    background-color: #6a4fbf;
+}
+
+.week-button {
+    background-color: #53a2cf;
+}
+.week-button:hover {
+    background-color: #6ab8e0;
+}
+
+.reset-button {
+    background-color: #2e8b57;
+}
+.reset-button:hover {
+    background-color: #3fa46b;
+}
+
 /* Responsive */
 @media (max-width: 800px) {
     .game-info {

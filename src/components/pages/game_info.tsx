@@ -4,6 +4,7 @@ import { useParams } from "react-router-dom";
 import "../../styles/game_info.css";
 
 import { fetchGame } from "../../api/steam_games";
+import { PlayerHistoryCountAreaChart } from "./charts"
 
 import windowsIcon from '../../assets/platform_icons/windows.png';
 import macIcon from '../../assets/platform_icons/mac.png';
@@ -54,14 +55,13 @@ const GameInfo = ({ setBackgroundUrl }: GameInfoProps) => {
     } = useQuery<GameMetadata>({
         queryKey: ['game', appid],
         queryFn: () => fetchGame(appid),
-        staleTime: 1000 * 60 * 5, // Cache for 5 minutes
         refetchOnWindowFocus: false,
         retry: (failureCount, error: any) => {
-        if (error?.status === 404 || error?.status === 400 || error?.status === 500) {
-            return false;
-        }
-        return failureCount < 2;
-    },
+            if (error?.status === 404 || error?.status === 400 || error?.status === 500) {
+                return false;
+            }
+            return failureCount < 2;
+        },
     });
     
     // Ref to image list container
@@ -146,6 +146,12 @@ const GameInfo = ({ setBackgroundUrl }: GameInfoProps) => {
             ) : (
                 <p>Loading screenshots...</p>
             )}
+            {/* Player Count info */}
+            { metadata?.appid ? (
+                <PlayerHistoryCountAreaChart appid={metadata.appid.toString()}/>
+                ) : (
+                    <p>Loading player count history...</p>
+                )}
 
             {/* Game description and publisher/developer info */}
             <div className="details-game-info">

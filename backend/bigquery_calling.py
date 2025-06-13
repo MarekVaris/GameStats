@@ -1,7 +1,11 @@
 from dotenv import load_dotenv
 from google.cloud import bigquery, tasks_v2, bigquery_storage_v1
+from concurrent.futures import ThreadPoolExecutor
+import requests
 import pandas as pd
 import os
+
+import app
 
 load_dotenv()
 
@@ -18,6 +22,60 @@ QUEUE_NAME = "update-queue"
 client_bq = bigquery.Client()
 client_storage = bigquery_storage_v1.BigQueryReadClient()
 client_tasks = tasks_v2.CloudTasksClient()
+
+
+# UPDATING TABLES
+
+def BQ_fetch_new_history_playercount():
+    query = f"""
+        SELECT appid, name
+        FROM `{METADATA_TABLE}`
+    """
+    try:
+        df = client_bq.query(query).to_arrow(bqstorage_client=client_storage).to_pandas()
+        data_list = df.to_dict('records')
+
+        steam_top_url = "https://api.steampowered.com/ISteamChartsService/GetGamesByConcurrentPlayers/v1/"
+        res = requests.get(steam_top_url)
+        if res.status_code != 200:
+            print(f"Failed to fetch top sellers: {res.status_code}")
+            steam_data = {}
+        else:
+            steam_data = res.json()
+        ranks = steam_data.get("response", {}).get("ranks", [])
+        existing_appids = {str(item["appid"]) for item in data_list}
+        for data in ranks:
+            if str(data["appid"]) not in existing_appids:
+                print(f"Fetching metadata for new appid: {data['appid']}")
+                new_data = app.fetch_game_metadata(str(data["appid"]))
+                data_list.append({"appid": data["appid"], "name": new_data["name"] })
+
+        def fetch_chart_data(appid, name):
+            url = f"https://steamcharts.com/app/{appid}/chart-data.json"
+            request = requests.get(url)
+            if request.status_code != 200:
+                print(f"Failed to fetch data for appid {appid}: {request.status_code}")
+                return None
+            data = request.json()
+            date_playerscount = ", ".join([f"{entry[0]} {entry[1]}" for entry in data])
+            return {
+                "appid": appid,
+                "name": name,
+                "date_playerscount": date_playerscount
+            }
+
+        print(f"Fetching player count history for {len(data_list)} apps...")
+        with ThreadPoolExecutor(max_workers=100) as executor:
+            futures = [executor.submit(fetch_chart_data, row['appid'], row['name']) for row in data_list]
+            data_return = [f.result() for f in futures if f.result() is not None]
+        
+        return data_return
+    
+    except Exception as e:
+        print(f"Error fetching new player count history: {e}")
+        return []
+
+
 
 def try_acquire_lock() -> bool:
     query = f"""
@@ -74,14 +132,14 @@ def upload_to_bigquery(all_data):
 
 def BQ_get_history_playercount_by_appid(appid):
     query = f"""
-        SELECT *
+        SELECT appid, name, date_playerscount
         FROM `{HISTORY_TABLE}`
         WHERE appid = @appid
         LIMIT 1
     """
     job_config = bigquery.QueryJobConfig(
         query_parameters=[
-            bigquery.ScalarQueryParameter("appid", "STRING", str(appid))
+            bigquery.ScalarQueryParameter("appid", "INT64", int(appid))
         ]
     )
     
@@ -94,44 +152,16 @@ def BQ_get_history_playercount_by_appid(appid):
         print(f"Error fetching player count history for appid {appid}: {e}")
         return None
 
-def BQ_add_history_playercount(data):
+def BQ_get_current_history_playercount_sorted():
     query = f"""
-        INSERT INTO `{HISTORY_TABLE}` (appid, name, date_playerscount)
-        VALUES (@appid, @name, @date_playerscount)
-    """
-    job_config = bigquery.QueryJobConfig(
-        query_parameters=[
-            bigquery.ScalarQueryParameter("appid", "STRING", data["appid"]),
-            bigquery.ScalarQueryParameter("name", "STRING", data["name"]),
-            bigquery.ScalarQueryParameter("date_playerscount", "STRING", data["date_playerscount"])
-        ]
-    )
-
-    try:
-        query_job = client_bq.query(query, job_config=job_config)
-        query_job.result()
-        return query_job
-
-    except Exception as e:
-        print(f"Error inserting player count history for appid {data['appid']}: {e}")
-        return None
-
-def BQ_get_current_history_playercount_sorted(BAD_APPIDS):
-    query = f"""
-        SELECT appid, name, SAFE_CAST(SPLIT(ARRAY_REVERSE(SPLIT(date_playerscount, ', '))[OFFSET(0)], ' ')[OFFSET(1)] AS INT64) AS concurrent_in_game
-        FROM `{HISTORY_TABLE}`
-        WHERE appid NOT IN UNNEST(@bad_appids)
+        SELECT appid, name, SAFE_CAST(SPLIT(ARRAY_REVERSE(SPLIT(date_playerscount, ', '))[SAFE_OFFSET(0)],' ')[SAFE_OFFSET(1)] AS INT64) AS concurrent_in_game
+        FROM `gamestats-462112.GameStats.history_playercount`
+        WHERE ARRAY_LENGTH(SPLIT(ARRAY_REVERSE(SPLIT(date_playerscount, ', '))[SAFE_OFFSET(0)], ' ')) > 1
         ORDER BY concurrent_in_game DESC
         LIMIT 7000
     """
-    job_config = bigquery.QueryJobConfig(
-        query_parameters=[
-            bigquery.ArrayQueryParameter("bad_appids", "STRING", BAD_APPIDS)
-        ]
-    )
-
     try:
-        df = client_bq.query(query, job_config=job_config).to_arrow(bqstorage_client=client_storage).to_pandas()
+        df = client_bq.query(query).to_arrow(bqstorage_client=client_storage).to_pandas()
         results = df.to_dict('records')
         return results
     

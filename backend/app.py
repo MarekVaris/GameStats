@@ -3,21 +3,18 @@ from flask_cors import CORS
 import os
 from dotenv import load_dotenv
 import requests
-import asyncio
 from flask_executor import Executor
 import time
 
 import csv_calling
-import fetching_bigdata_csv
 import bigquery_calling
 
-load_dotenv()
-
 app = Flask(__name__)
-executor = Executor(app)
 
+executor = Executor(app)
 CORS(app)
 
+load_dotenv()
 USE_BQ = os.getenv("USE_BQ", "").lower() == "true"
 STEAM_API_KEY = os.getenv("STEAM_API_KEY")
 BAD_APPIDS = csv_calling.get_badappid_data()
@@ -58,17 +55,13 @@ def get_current_history_playercouny(appid, name):
         if not data:
             raise ValueError(f"No data found for appid {appid}.")
         
-        all_data = {
+        row = {
             "appid": str(appid),
             "name": name,
             "date_playerscount": ", ".join([f"{entry[0]} {entry[1]}" for entry in data])
         }
-        if USE_BQ:
-            bigquery_calling.BQ_add_history_playercount(all_data)
-        else:
-            csv_calling.add_history_playercount(all_data)
 
-        return all_data
+        return row
 
     except Exception as e:
         print(f"Error fetching current players for appid {appid}: {e}")
@@ -173,10 +166,11 @@ def fetch_game_metadata(appid = None):
 # Output: list of games with appid, concurrent_in_game, rank
 def get_all_top_games_sored():
     if USE_BQ:
-        all_games_return = bigquery_calling.BQ_get_current_history_playercount_sorted(BAD_APPIDS)
+        all_games_return = bigquery_calling.BQ_get_current_history_playercount_sorted()
     else:
         all_games_return = csv_calling.get_current_history_playercount_sorted(BAD_APPIDS)
 
+    # Raking the games based on concurrent_in_game
     for i, game in enumerate(all_games_return, start=1):
         game["rank"] = i
 
@@ -294,6 +288,15 @@ def get_search_games():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route("/api/steam/playercount/<appid>")
+def get_current_playercount(appid):
+    try:
+        row_of_data = bigquery_calling.BQ_get_history_playercount_by_appid(appid)
+        if row_of_data is None:
+            return jsonify({"error": "App ID not found"}), 404
+        return jsonify(row_of_data)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 # @app.route("/update", methods=["POST"])
@@ -307,8 +310,9 @@ def get_search_games():
 @app.route("/update-task", methods=["POST"])
 def update_task_handler():
     try:
-        all_data = asyncio.run(fetching_bigdata_csv.get_players_count_history_to_csv())
+        all_data = executor.submit(bigquery_calling.BQ_fetch_new_history_playercount).result()
         bigquery_calling.upload_to_bigquery(all_data)
+
         return jsonify({"status": "Update finished"}), 200
     
     except Exception as e:

@@ -9,26 +9,30 @@ import time
 import csv_calling
 import bigquery_calling
 
+# Initialize Flask app and executor
 app = Flask(__name__)
-
 executor = Executor(app)
 CORS(app)
 
+# Load environment variables
 load_dotenv()
-USE_BQ = os.getenv("USE_BQ", "").lower() == "true"
 STEAM_API_KEY = os.getenv("STEAM_API_KEY")
 BAD_APPIDS = csv_calling.get_badappid_data()
 
+
+# Cache for game ranking and metadata
 CACHE_DURATION = 12 * 60 * 60
 
 cache_last_fetch_timestamp = 0
 cache_game_ranking_topcurplayers= []
 cache_all_games_metadata = []
 
+
 #########################################################
 #####################   FUNCTIONS   #####################
 #########################################################
 
+# List of fieldnames for game metadata
 fieldnames = [
     "appid", "name", "header_image", "short_description", "developers",
     "publishers", "release_date", "platforms", "price", "categories",
@@ -38,36 +42,33 @@ fieldnames = [
 # Get current playes for game
 # Input: appid
 # Output: appid, name, date_playerscount - for database
-def get_current_history_playercouny(appid, name):
-    
-    if USE_BQ:
-        row = bigquery_calling.BQ_get_history_playercount_by_appid(appid)
-    else:
-        row = csv_calling.get_history_playercount_by_appid(appid)
+def get_current_history_playercouny(appid, name): 
+    row = bigquery_calling.BQ_get_history_playercount_by_appid(appid)
 
     if row is not None:
         return row
     
     try:
+        # Fetch current player count data from SteamCharts
         url = f"https://steamcharts.com/app/{appid}/chart-data.json"
         res = requests.get(url, timeout=10)
         data = res.json()
         if not data:
             raise ValueError(f"No data found for appid {appid}.")
         
+        # Process the data to get the date and player count
         row = {
             "appid": str(appid),
             "name": name,
             "date_playerscount": ", ".join([f"{entry[0]} {entry[1]}" for entry in data])
         }
-
         return row
 
     except Exception as e:
         print(f"Error fetching current players for appid {appid}: {e}")
         return None
     
-# Fetch game metadata from CSV or API and save it to CSV
+# Fetch game metadata from BigQuery or Steam API
 # Input: appid
 # Output: appid, name, header_image, short_description, developers, publishers,
 #  release_date, platforms, price, categories, genres, website, screenshots, background
@@ -75,12 +76,9 @@ def get_current_history_playercouny(appid, name):
 # Input: appid=None
 # Output: all metadata from CSV
 def fetch_game_metadata(appid = None):
-    # If appid is None, return all metadata from CSV
+    # If appid is None, return all metadata from BigQuery
     if appid is None:
-        if USE_BQ:
-            return bigquery_calling.BQ_get_all_metadata()
-        else:
-            return csv_calling.get_all_metadata()
+        return bigquery_calling.BQ_get_all_metadata()
 
     # Check if appid is valid            
     if str(appid) in BAD_APPIDS:
@@ -93,21 +91,19 @@ def fetch_game_metadata(appid = None):
     global cache_all_games_metadata
     result = None
     # Check if appid is already in cache
-    if USE_BQ:
-        if cache_all_games_metadata:
-            for row in cache_all_games_metadata:
-                if int(row["appid"]) == int(appid):
-                    result = row.copy()
-                    for data in fieldnames:
-                        if data in ["platforms", "categories", "genres", "screenshots"]:
-                            result[data] = result[data].split(", ") if result[data] else []
-        if result is None:
-            # If cache is empty, fetch from BigQuery
-            result = bigquery_calling.BQ_get_metadata_by_appid(appid)
-    else:
-        result = csv_calling.get_metadata_by_appid(appid)
+    if cache_all_games_metadata:
+        for row in cache_all_games_metadata:
+            if int(row["appid"]) == int(appid):
+                result = row.copy()
+                for data in fieldnames:
+                    if data in ["platforms", "categories", "genres", "screenshots"]:
+                        result[data] = result[data].split(", ") if result[data] else []
+    
+    # If cache is empty, fetch from BigQuery
+    if result is None:
+        result = bigquery_calling.BQ_get_metadata_by_appid(appid)
 
-    # If result is found in cache or CSV, return it
+    # If found in cache or database return the result
     if result is not None:
         return result
     
@@ -117,7 +113,7 @@ def fetch_game_metadata(appid = None):
         res = requests.get(url, timeout=10)
         data = res.json()
 
-        # Check if data is valid, if not adds appid to the list of bad appids
+        # Check if the API response contains the appid and success status
         if not data.get(appid, {}).get("success"):
             csv_calling.add_badappid(appid)
             BAD_APPIDS.add(str(appid))
@@ -146,12 +142,8 @@ def fetch_game_metadata(appid = None):
         "background": game_data.get("background")
     }
 
-    # Add metadata to BigQuery or CSV
-    if USE_BQ:
-        bigquery_calling.BQ_add_metadata(result)
-    else:
-        csv_calling.add_metadata(result)
-        
+    # Add metadata to BigQuery
+    bigquery_calling.BQ_add_metadata(result)
 
     for data in fieldnames:
         if data in ["platforms", "categories", "genres", "screenshots"]:
@@ -161,14 +153,10 @@ def fetch_game_metadata(appid = None):
 
 
 
-# Get all games from CSV file
-# Input: current_time (current timestamp in milliseconds)
-# Output: list of games with appid, concurrent_in_game, rank
+# Get all top games sorted by concurrent players
+# Output: appid, name, header_image, concurrent_in_game, rank
 def get_all_top_games_sored():
-    if USE_BQ:
-        all_games_return = bigquery_calling.BQ_get_current_history_playercount_sorted()
-    else:
-        all_games_return = csv_calling.get_current_history_playercount_sorted(BAD_APPIDS)
+    all_games_return = bigquery_calling.BQ_get_current_history_playercount_sorted()
 
     # Raking the games based on concurrent_in_game
     for i, game in enumerate(all_games_return, start=1):
@@ -187,61 +175,55 @@ def get_all_top_games_sored():
 # Output: rank, appid, concurrent_in_game + name, header_image
 @app.route("/api/topcurrentgames")
 def get_top_current_games():
+    global cache_last_fetch_timestamp, cache_game_ranking_topcurplayers, cache_all_games_metadata
+    combine_data = []
     try:
-        combine_data = []
-        try:
-            if USE_BQ:
-                global cache_last_fetch_timestamp, cache_game_ranking_topcurplayers, cache_all_games_metadata
+        # Check if cache is empty or expired
+        if not cache_all_games_metadata or not cache_game_ranking_topcurplayers or \
+            (int(time.time()) - cache_last_fetch_timestamp >= CACHE_DURATION):
+            print("Cache expired or empty, fetching new data.")
+            exec_all_ranks = executor.submit(get_all_top_games_sored)
+            exec_all_games = executor.submit(fetch_game_metadata)
 
-                if not cache_all_games_metadata or not cache_game_ranking_topcurplayers or \
-                   (int(time.time()) - cache_last_fetch_timestamp >= CACHE_DURATION):
-                    print("Cache expired or empty, fetching new data.")
-                    exec_all_ranks = executor.submit(get_all_top_games_sored)
-                    exec_all_games = executor.submit(fetch_game_metadata)
-
-                    cache_game_ranking_topcurplayers = exec_all_ranks.result()
-                    cache_all_games_metadata = exec_all_games.result()
-                    cache_last_fetch_timestamp = int(time.time())
-            else:
-                cache_game_ranking_topcurplayers = get_all_top_games_sored()
-                cache_all_games_metadata = fetch_game_metadata()
-
-
-        except Exception as e:
-            print(f"Error fetching data: {e}")
-            return jsonify({"error": "Failed to fetch data"}), 500
-
-        try:
-            for game in cache_game_ranking_topcurplayers:
-                metadata = look_for_data_in_sorted_list(cache_all_games_metadata, int(game["appid"]))
-                if metadata is not None:
-                    game["name"] = metadata.get("name", "Unknown")
-                    game["header_image"] = metadata.get("header_image", "")
-                else:
-                    print(f"Metadata for appid {game['appid']} not found, fetching from API.")
-                    try_to_fetch = fetch_game_metadata(game["appid"])
-                    if try_to_fetch is None:
-                        continue
-                    game["name"] = try_to_fetch["name"]
-                    game["header_image"] = try_to_fetch["header_image"]
-
-                combine_data.append({
-                    "rank": game["rank"],
-                    "appid": game["appid"],
-                    "concurrent_in_game": game["concurrent_in_game"],
-                    "name": game["name"],
-                    "header_image": game["header_image"]
-                })
-
-        except Exception as e:
-            print(f"Error processing game metadata: {e}")
-            return jsonify({"error": "Failed to process game metadata"}), 500
-        
-        return jsonify(combine_data)
-    
+            cache_game_ranking_topcurplayers = exec_all_ranks.result()
+            cache_all_games_metadata = exec_all_games.result()
+            cache_last_fetch_timestamp = int(time.time())
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print(f"Error fetching data: {e}")
+        return jsonify({"error": "Failed to fetch data"}), 500
 
+    try:
+        # Process the cached game ranking data
+        for game in cache_game_ranking_topcurplayers:
+            metadata = look_for_data_in_sorted_list(cache_all_games_metadata, int(game["appid"]))
+            if metadata is not None:
+                game["name"] = metadata.get("name", "Unknown")
+                game["header_image"] = metadata.get("header_image", "")
+            else:
+                print(f"Metadata for appid {game['appid']} not found, fetching from API.")
+                try_to_fetch = fetch_game_metadata(game["appid"])
+                if try_to_fetch is None:
+                    continue
+                game["name"] = try_to_fetch["name"]
+                game["header_image"] = try_to_fetch["header_image"]
+
+            # Append the game data to the combined list
+            combine_data.append({
+                "rank": game["rank"],
+                "appid": game["appid"],
+                "concurrent_in_game": game["concurrent_in_game"],
+                "name": game["name"],
+                "header_image": game["header_image"]
+            })
+
+        return jsonify(combine_data)
+    except Exception as e:
+        print(f"Error processing game metadata: {e}")
+        return jsonify({"error": "Failed to process game metadata"}), 500
+    
+    
+
+# Look for data in sorted list by appid
 def look_for_data_in_sorted_list(sorted_list, appid):
     low, high = 0, len(sorted_list) - 1
     while low <= high:
@@ -271,7 +253,9 @@ def get_game_metadata(appid):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
+# Get all metadata
+# Input: None
+# Output: list of all games metadata
 @app.route("/api/steam/allmetadata")
 def get_metadata_all():
     global cache_all_games_metadata
@@ -305,6 +289,9 @@ def get_search_games():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+# Get current player count for a game
+# Input: appid
+# Output: appid, name, date_playerscount
 @app.route("/api/steam/playercount/<appid>")
 def get_current_playercount(appid):
     try:
@@ -317,6 +304,9 @@ def get_current_playercount(appid):
 
 
 
+# Update the player count history in BigQuery
+# This endpoint is for manual triggering of the update task
+
 # @app.route("/update", methods=["POST"])
 # def update_entrypoint():
 #     if bigquery_calling.try_acquire_lock():
@@ -324,7 +314,6 @@ def get_current_playercount(appid):
 #         return jsonify({"status": "Update task enqueued", "task": task_name}), 202
 #     else:
 #         return jsonify({"status": "Update already running or not due"}), 200
-
 @app.route("/update-task", methods=["POST"])
 def update_task_handler():
     try:

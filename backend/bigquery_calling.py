@@ -7,8 +7,9 @@ import os
 
 import app
 
-load_dotenv()
 
+# Environment Variables
+load_dotenv()
 PROJECT_ID = os.getenv("PROJECT_ID")
 HISTORY_TABLE = PROJECT_ID + ".GameStats.history_playercount"
 LOCK_TABLE = PROJECT_ID + ".GameStats.update_lock"
@@ -26,6 +27,7 @@ client_tasks = tasks_v2.CloudTasksClient()
 
 # UPDATING TABLES
 
+# Fetches new player count history for games not in the metadata table
 def BQ_fetch_new_history_playercount():
     query = f"""
         SELECT appid, name
@@ -75,8 +77,7 @@ def BQ_fetch_new_history_playercount():
         print(f"Error fetching new player count history: {e}")
         return []
 
-
-
+# Tries to acquire a lock for updating player count history
 def try_acquire_lock() -> bool:
     query = f"""
     UPDATE `{LOCK_TABLE}`
@@ -90,6 +91,7 @@ def try_acquire_lock() -> bool:
     job.result()
     return job.num_dml_affected_rows == 1
 
+# Releases the lock after updating player count history
 def release_lock():
     query = f"""
     UPDATE `{LOCK_TABLE}`
@@ -100,6 +102,7 @@ def release_lock():
 
 # https://cloud.google.com/python/docs/reference/cloudtasks/latest/google.cloud.tasks_v2.types.HttpRequest
 
+# Creates a Cloud Task to update player count history
 # def create_cloud_task():
 #     parent = client_tasks.queue_path(PROJECT_ID, REGION, QUEUE_NAME)
 #     task = {
@@ -115,6 +118,7 @@ def release_lock():
 #     response = client_tasks.create_task(parent=parent, task=task)
 #     return response.name
 
+# Updates player count history in BigQuery
 def upload_to_bigquery(all_data):
     df = pd.DataFrame(all_data)
     df = df.drop_duplicates(subset=["appid","name","date_playerscount"])
@@ -130,6 +134,7 @@ def upload_to_bigquery(all_data):
 
 # HISTORY PLAYERCOUNT CALLING
 
+# Fetches all player count history
 def BQ_get_history_playercount_by_appid(appid):
     query = f"""
         SELECT appid, name, date_playerscount
@@ -152,6 +157,7 @@ def BQ_get_history_playercount_by_appid(appid):
         print(f"Error fetching player count history for appid {appid}: {e}")
         return None
 
+# Fetches the current player count history sorted by concurrent players
 def BQ_get_current_history_playercount_sorted():
     query = f"""
         SELECT appid, name, SAFE_CAST(SPLIT(ARRAY_REVERSE(SPLIT(date_playerscount, ', '))[SAFE_OFFSET(0)],' ')[SAFE_OFFSET(1)] AS INT64) AS concurrent_in_game
@@ -171,8 +177,6 @@ def BQ_get_current_history_playercount_sorted():
 
 
 
-
-
 # METADATA CALLING
 
 fieldnames = [
@@ -181,6 +185,7 @@ fieldnames = [
     "genres", "website", "screenshots", "background"
 ]
 
+# Fetches all metadata from the metadata table
 def BQ_get_all_metadata():
     query = f"""
         SELECT *
@@ -196,8 +201,8 @@ def BQ_get_all_metadata():
     except Exception as e:
         print(f"Error fetching metadata: {e}")
         return []
-    
 
+# Fetches metadata for a specific appid from the metadata table
 def BQ_get_metadata_by_appid(appid):
     query = f"""
         SELECT *
@@ -228,6 +233,7 @@ def BQ_get_metadata_by_appid(appid):
         print(f"Error fetching metadata for appid {appid}: {e}")
         return None
 
+# Adds metadata to the metadata table
 def BQ_add_metadata(data):
     columns = ", ".join(data.keys())
     placeholders = ", ".join([f"@{k}" for k in data.keys()])
@@ -262,6 +268,7 @@ def BQ_add_metadata(data):
     
 # ALL APPLIST CALLING
 
+# Fetches all steam games from the all_steam_apps table
 def BQ_get_all_steam_games():
     query = f"""
         SELECT appid, name

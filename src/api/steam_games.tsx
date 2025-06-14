@@ -16,12 +16,6 @@ export const fetchGame = async (appid: string | undefined) => {
     return res.json();
 };
 
-export const searchForGamesAllList = async () => {
-    const res = await fetch(API_URL + "steam/search");
-    if (!res.ok) throw new Error('Failed to fetch');
-    return res.json();
-};
-
 export const fetchGameHistory = async (appid: string | undefined) => {
     const res = await fetch(API_URL + "steam/playercount/" + appid);
     if (!res.ok) {
@@ -30,4 +24,17 @@ export const fetchGameHistory = async (appid: string | undefined) => {
       throw error;
     }
     return res.json();
-}
+};
+  
+export const searchForGamesAllList = async () => {
+    const res = await fetch(API_URL + "steam/search");
+    if (!res.ok) throw new Error('Failed to fetch');
+    return res.json();
+};
+
+
+export const fetchAllGamesMetadata = async () => {
+    const res = await fetch(API_URL + "steam/allmetadata");
+    if (!res.ok) throw new Error('Failed to fetch');
+    return res.json();
+};

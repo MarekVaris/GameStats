@@ -4,7 +4,7 @@ import { useParams } from "react-router-dom";
 import "../../styles/game_info.css";
 
 import { fetchGame } from "../../api/steam_games";
-import { PlayerHistoryCountAreaChart } from "./charts"
+import { PlayerHistoryCountAreaChart } from "./charts/areaChartPlayerHistory"
 
 import windowsIcon from '../../assets/platform_icons/windows.png';
 import macIcon from '../../assets/platform_icons/mac.png';
@@ -146,12 +146,13 @@ const GameInfo = ({ setBackgroundUrl }: GameInfoProps) => {
             ) : (
                 <p>Loading screenshots...</p>
             )}
+            
             {/* Player Count info */}
             { metadata?.appid ? (
                 <PlayerHistoryCountAreaChart appid={metadata.appid.toString()}/>
-                ) : (
-                    <p>Loading player count history...</p>
-                )}
+            ) : (
+                <p>Loading player count history...</p>
+            )}
 
             {/* Game description and publisher/developer info */}
             <div className="details-game-info">

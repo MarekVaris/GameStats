@@ -1,9 +1,9 @@
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
-import '../../styles/top_current_games.css'
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
+import "../../styles/top_current_games.css"
 
-import { fetchTopSteamGames } from '../../api/steam_games';
+import { fetchTopSteamGames } from "../../api/steam_games";
 const SHOW_PAGES = 1
 
 // Define the structure of a Game object
@@ -21,10 +21,8 @@ const GameStats = () => {
     // Fetch top Steam games when the component mounts
     const {
         data: games,
-        isLoading,
-        error
     } = useQuery<Game[]>({
-        queryKey: ['topSteamGames'],
+        queryKey: ["topSteamGames"],
         queryFn: fetchTopSteamGames,
         refetchOnWindowFocus: false,
     });
@@ -35,7 +33,7 @@ const GameStats = () => {
 
     // Save the current page in session storage
     const [currentPage, setCurrentPage] = useState(() => {
-        const saved = sessionStorage.getItem('currentPage');
+        const saved = sessionStorage.getItem("currentPage");
         if (saved) {
             if (parseInt(saved) > totalPages) {
                 return 1;
@@ -51,7 +49,7 @@ const GameStats = () => {
     // Function to handle page change
     const handlePageChange = (page: number) => {
         setCurrentPage(page)
-        sessionStorage.setItem('currentPage', page.toString());
+        sessionStorage.setItem("currentPage", page.toString());
     }
 
     // Generating the page numbers to display
@@ -61,7 +59,7 @@ const GameStats = () => {
         const pages = []
 
         pages.push(1)
-        if (start > 2) { pages.push('...') }
+        if (start > 2) { pages.push("...") }
         
         if (end - start < 2 * SHOW_PAGES) {
             end = Math.min(start + 2 * SHOW_PAGES, totalPages - 1)
@@ -72,7 +70,7 @@ const GameStats = () => {
             pages.push(i)
         }
 
-        if (end < totalPages - 1) { pages.push('...') }
+        if (end < totalPages - 1) { pages.push("...") }
         pages.push(totalPages)
         
         return pages
@@ -98,7 +96,7 @@ const GameStats = () => {
                         <Link to={`/game/${game.appid}`} key={game.appid} className="game-links">
                             <li key={game.rank} className="game-row">
                                 <span className="rank">{game.rank}</span>
-                                <img className='header-image-row' src={game.header_image} alt="img" />
+                                <img className="header-image-row" src={game.header_image} alt="img" />
                                 <div className="row-info">
                                     <p><span>Game Name:</span> {game.name}</p>
                                     <p><span>Current Players:</span> {game.concurrent_in_game}</p>
@@ -123,7 +121,7 @@ const GameStats = () => {
                     ) : (
                         <button
                             key={index}
-                            className={currentPage === number as number ? 'active' : ''}
+                            className={currentPage === number as number ? "active" : ""}
                             onClick={() => handlePageChange(number as number)}>
                             {number}
                         </button>

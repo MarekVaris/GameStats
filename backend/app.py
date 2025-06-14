@@ -272,6 +272,23 @@ def get_game_metadata(appid):
         return jsonify({"error": str(e)}), 500
 
 
+@app.route("/api/steam/allmetadata")
+def get_metadata_all():
+    global cache_all_games_metadata
+    try:
+        if not cache_all_games_metadata:
+            cache_all_games_metadata = fetch_game_metadata()
+
+        all_metadata = cache_all_games_metadata
+
+        if not all_metadata:
+            return jsonify({"error": "No metadata found"}), 404
+        
+        return jsonify(all_metadata)
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 # Get all games applist
 # Input: query
 # Output: list of appids and names
@@ -297,6 +314,7 @@ def get_current_playercount(appid):
         return jsonify(row_of_data)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 
 # @app.route("/update", methods=["POST"])

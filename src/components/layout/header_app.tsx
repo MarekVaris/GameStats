@@ -17,12 +17,9 @@ const Header = () => {
 
     const { 
         data: games,
-        isLoading,
-        error 
     } = useQuery<GameSearch[]>({
         queryKey: ["searchForGamesAllList"],
         queryFn: searchForGamesAllList,
-        staleTime: 1000 * 60 * 5,
     });
     
     const handleSearch = (e: React.FormEvent) => {
@@ -75,6 +72,7 @@ const Header = () => {
 
                 <nav>
                     <Link to="/">Home</Link>
+                    <Link to="/SteamAnalyse">Steam Analyse</Link>
                     <Link to="/TopSteamGames">Top Steam Games</Link>
                 </nav>
             </div>

@@ -1,0 +1,83 @@
+/* Base container for all charts */
+.charts-page {
+    display: grid;
+    padding: 2rem;
+    gap: 1rem;
+}
+
+/* Each chart card */
+.chart-container {
+    background-color: #2f2f2f;
+    border-radius: 12px;
+    padding: 1.5rem;
+    flex-direction: column;
+}
+
+/* Chart title */
+.chart-container > p {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+/* Controls section */
+.chart-controls {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.chart-controls select,
+.chart-controls input[type="number"] {
+    padding: 0.5rem 0.75rem;
+    border-radius: 12px;
+    border: 1px solid #61dafb;
+    background-color: #6ab8e0;
+    font-size: 0.95rem;
+}
+
+/* Delete button */
+.chart-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.delete-button {
+    background-color: #8f181a;
+    color: white;
+    border-radius: 12px;
+    padding: 0.5rem 1rem;
+}
+.delete-button:hover {
+    background-color: #a8353a;
+}
+
+/* Save button */
+.save-button{
+    background-color: #6200ff;
+    color: white;
+    border-radius: 12px;
+    padding: 0.5rem 1rem;
+}
+
+.save-button:hover {
+    background-color: #3700b3;
+}
+
+/* Add chart section */
+.add-chart-controls {
+    display: flex;
+    justify-content: center;
+    margin: auto;
+}
+
+.add-chart-controls button {
+    background-color: #28a745;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+}
+
+.add-chart-controls button:hover {
+    background-color: #218838;
+}

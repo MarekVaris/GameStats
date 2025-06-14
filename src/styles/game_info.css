@@ -278,4 +278,22 @@
     .screenshots-game-info h1 {
         font-size: 1.5rem;
     }
+    
+    .date-buttons-wrapper div {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5em;
+        width: 75%;
+        text-align: center;
+    }
+
+    .date-button{
+        padding: 0.5em;
+        font-size: 0.9rem;
+    }
+
+    .reset-button{
+        width: 30%;
+        align-self: center;
+    }
 }

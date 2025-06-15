@@ -10,14 +10,14 @@ import app
 
 # Environment Variables
 load_dotenv()
-PROJECT_ID = os.getenv("PROJECT_ID")
+PROJECT_ID = os.getenv("PROJECT_ID", "gamestats-462112")
 HISTORY_TABLE = PROJECT_ID + ".GameStats.history_playercount"
 LOCK_TABLE = PROJECT_ID + ".GameStats.update_lock"
 METADATA_TABLE = PROJECT_ID + ".GameStats.steam_metadata"
 REGION = "us-central1"
-GOOGLE_APPLICATION_CREDENTIALS = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
-TASK_ENDPOINT = os.getenv("TASK_ENDPOINT")
-CLOUD_RUN_URL = os.getenv("CLOUD_RUN_URL")
+# GOOGLE_APPLICATION_CREDENTIALS = os.getenv("GOOGLE_APPLICATION_CREDENTIALS", "")
+TASK_ENDPOINT = os.getenv("TASK_ENDPOINT", "/update-task")
+CLOUD_RUN_URL = os.getenv("CLOUD_RUN_URL", "https://your-cloud-run-url.com")
 QUEUE_NAME = "update-queue"
 
 client_bq = bigquery.Client()

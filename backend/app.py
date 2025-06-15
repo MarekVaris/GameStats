@@ -16,7 +16,6 @@ CORS(app)
 
 # Load environment variables
 load_dotenv()
-STEAM_API_KEY = os.getenv("STEAM_API_KEY")
 BAD_APPIDS = csv_calling.get_badappid_data()
 
 
@@ -331,4 +330,4 @@ def update_task_handler():
 
 # RUN THE APP
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))

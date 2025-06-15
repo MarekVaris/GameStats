@@ -1,54 +1,43 @@
-# React + TypeScript + Vite
+# 🚧 Under Construction 🚧
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This project is currently a work in progress. Stay tuned for more features and improvements!
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+# 🎮 Steam Game Stats
 
-## Expanding the ESLint configuration
+This project is a full-stack web application designed to explore and analyze Steam game data. The frontend is built with React and TypeScript, providing a responsive and interactive user interface that displays top Steam games, detailed game information, and comprehensive data visualizations. The backend serves Steam game data using Google BigQuery for analytics and is deployed on Google Cloud Run, enabling a scalable, serverless API. 🚀
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+---
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+## 🔍 How It Works
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+The frontend fetches Steam game data from a REST API running on Google Cloud Run. This API queries Google BigQuery, which stores and processes large datasets of Steam game metadata and player counts. The app features:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- 📄 A paginated list of top Steam games by concurrent players, where users can select how many games to view per page.
+- 🎯 Detailed pages for each game, showing screenshots, descriptions, developer and publisher info, release dates, genres, platforms, and an interactive player count history chart.
+- 📊 An analysis section with customizable bar and pie charts that summarize data such as the most common developers, platforms, categories, and genres across all Steam games in the dataset.
+- 💾 The ability to download charts as images for offline use or reporting.
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+---
+
+## 🛠️ Technologies Used
+
+- **Frontend**: React ⚛️ with TypeScript 📝, React Query for data fetching and caching, React Router for routing, and html2canvas for exporting charts as images + Basic CSS for styling.
+- **Backend**: Google Cloud Run ☁️ hosts a serverless API that connects to Google BigQuery, which manages the large-scale Steam game dataset.
+  
+This architecture allows efficient querying of large datasets with minimal latency, while delivering a smooth, modern frontend experience.
+
+---
+
+## 💡 Why This Project
+
+This project showcases the ability to build a full-stack application that handles real-world data challenges—large datasets, API performance, and interactive visualizations. It leverages modern frontend development best practices with React and TypeScript, coupled with powerful cloud-native backend services on Google Cloud Platform.
+
+It demonstrates skills in:
+
+- 🎨 Frontend UI/UX design and data visualization.
+- ⚡ Asynchronous data fetching and state management.
+- ☁️ Cloud infrastructure deployment and serverless APIs.
+- 📊 Data engineering with BigQuery.
+

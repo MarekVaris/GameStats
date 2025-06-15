@@ -71,7 +71,7 @@ const Header = () => {
                 )}
 
                 <nav>
-                    <Link to="/">Home</Link>
+                    <Link to="/GameStats">Home</Link>
                     <Link to="/SteamAnalyse">Steam Analyse</Link>
                     <Link to="/TopSteamGames">Top Steam Games</Link>
                 </nav>

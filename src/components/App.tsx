@@ -24,7 +24,7 @@ const App = () => {
                   backgroundImage: backgroundUrl ? `url(${backgroundUrl})` : 'none',
             }}>
             <Routes>
-              <Route path="/" element={<Home />} />
+              <Route path="/GameStats" element={<Home />} />
               <Route path="/TopSteamGames" element={<TopSteamGames />} />
               <Route path="/game/:appid" element={<GameInfo setBackgroundUrl={setBackgroundUrl} />} />
               <Route path="/SteamAnalyse" element={<SteamAnalyse />} />

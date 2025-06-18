@@ -25,6 +25,7 @@ const GameStats = () => {
         queryKey: ["topSteamGames"],
         queryFn: fetchTopSteamGames,
         refetchOnWindowFocus: false,
+        refetchOnMount: false,
     });
 
     // Calculate total pages and current games to display based on the current page and items per page

@@ -56,6 +56,7 @@ const GameInfo = ({ setBackgroundUrl }: GameInfoProps) => {
         queryKey: ['game', appid],
         queryFn: () => fetchGame(appid),
         refetchOnWindowFocus: false,
+        refetchOnMount: false,
         retry: (failureCount, error: any) => {
             if (error?.status === 404 || error?.status === 400 || error?.status === 500) {
                 return false;

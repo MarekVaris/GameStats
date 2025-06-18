@@ -1,5 +1,5 @@
-// const API_URL = 'https://gamestats-92459476338.europe-west1.run.app/api/';
-const API_URL = 'http://172.18.8.13:8080/api/'
+const API_URL = 'https://gamestats-92459476338.europe-west1.run.app/api/';
+// const API_URL = 'http://127.0.0.1:8080/api/'
 
 export const fetchTopSteamGames = async () => {
     const res = await fetch(API_URL + "topcurrentgames");

@@ -32,7 +32,15 @@ export const PlayerHistoryCountAreaChart = ({ appid }: { appid: string }) => {
         queryKey: [appid],
         queryFn: () => fetchGameHistory(appid),
         refetchOnWindowFocus: false,
+        refetchOnMount: false,
+        retry: (failureCount, error: any) => {
+            if (error.status === 404) {
+                return false;
+            }
+            return failureCount === 0;
+        }
     });
+
 
     if (isLoading) return <div>Loading...</div>;
     if (error) return <div>Error: {error.message}</div>;

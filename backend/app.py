@@ -44,9 +44,8 @@ fieldnames = [
 def get_current_history_playercouny(appid): 
     row = bigquery_calling.BQ_get_history_playercount_by_appid(appid)
 
-    if row is not None and row != []:
-        print("here")
-        return row
+    # if row is not None and row != []:
+    #     return row
     
     try:
         # Fetch current player count data from SteamCharts

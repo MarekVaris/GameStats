@@ -181,11 +181,15 @@
 
 .date-fields {
     display: flex;
-    gap: 1em;
-    color: #61dafb;;
+    justify-content: space-evenly;
+    color: #61dafb;
 }
 
-.date-fields label {
+.date-fields-content{
+    width: 45%;
+}
+
+.date-fields-content label {
     display: flex;
     flex-direction: column;
     flex: 1;
@@ -193,12 +197,10 @@
 
 .date-input {
     border: 1px solid #61dafb;
-    border-radius: 6px;
+    border-radius: 12px;
     padding: 0.5em;
     background: #2f2f2f;
     color: #ffffff;
-    outline: none;
-    transition: border-color 0.2s ease;
 }
 
 .date-input:focus {
@@ -279,15 +281,32 @@
         font-size: 1.5rem;
     }
     
+    
     .date-buttons-wrapper div {
         display: flex;
-        flex-direction: column;
         gap: 0.5em;
         width: 75%;
         text-align: center;
     }
+    
+    .date-back-buttons{
+        flex-direction: column-reverse;
+    }
+
+    .date-forwad-button{
+        flex-direction: column;
+    }
+
+    .date-input{
+        width: 100%;
+    }
+
+    .date-fields-content{
+        width: 40%;
+    }
 
     .date-button{
+        width: 100%;
         padding: 0.5em;
         font-size: 0.9rem;
     }
@@ -296,4 +315,5 @@
         width: 30%;
         align-self: center;
     }
+
 }

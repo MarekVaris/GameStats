@@ -95,28 +95,33 @@ export const PlayerHistoryCountAreaChart = ({ appid }: { appid: string }) => {
 
             <div className="date-input-wrapper">
                 <div className="date-fields">
-                    <label>
-                        From:
-                    <input
-                        type="date"
-                        value={fromDate}
-                        onChange={(e) => setFromDate(e.target.value)}
-                        className="date-input"
-                    />
-                    </label>
-                    <label>
-                        To:
-                    <input
-                        type="date"
-                        value={toDate}
-                        onChange={(e) => setToDate(e.target.value)}
-                        className="date-input"
-                    />
-                    </label>
+                    <div className="date-fields-content">
+                        <label>
+                            From:
+                        <input
+                            type="date"
+                            value={fromDate}
+                            onChange={(e) => setFromDate(e.target.value)}
+                            className="date-input"
+                        />
+                        </label>
+                    </div>
+
+                    <div className="date-fields-content">
+                        <label>
+                            To:
+                        <input
+                            type="date"
+                            value={toDate}
+                            onChange={(e) => setToDate(e.target.value)}
+                            className="date-input"
+                        />
+                        </label>
+                    </div>
                 </div>
                 {/* Date buttons for quick navigation */}
                 <div className="date-buttons-wrapper">
-                    <div>
+                    <div className="date-back-buttons">
                         {/* Back one moth */}
                         <button
                             onClick={() => {
@@ -150,7 +155,7 @@ export const PlayerHistoryCountAreaChart = ({ appid }: { appid: string }) => {
                     >
                         Reset
                     </button>
-                    <div>
+                    <div className="date-forwad-button">
                         { /* Forward one month */}
                         <button
                             onClick={() => {

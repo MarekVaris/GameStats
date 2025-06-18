@@ -49,3 +49,21 @@ button:disabled {
     color: #aaa;
     cursor: not-allowed;
 }
+
+@media ( max-width: 420px ) {
+    body{
+        overflow: auto;    
+    }
+
+    main {
+        width: 600px;
+    }
+
+    header{
+        width: 665px;
+    }
+
+    footer{
+        width: 665px;
+    }
+}

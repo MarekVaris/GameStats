@@ -1,15 +1,16 @@
 {
   "name": "GameStats",
-  "homepage": "https://MarekVaris.github.io/GameStats",
+  "homepage": "https://marekvaris.github.io/GameStats",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "copy404": "copy dist\\index.html dist\\404.html",
     "lint": "eslint .",
     "preview": "vite preview",
-    "predeploy": "npm run build",
+    "predeploy": "npm run build && npm run copy404",
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {

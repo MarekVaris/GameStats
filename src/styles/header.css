@@ -49,6 +49,7 @@
 .search-form {
     display: flex;
     align-items: center;
+    margin: auto;
     gap: 0.5rem;
     flex-grow: 1;
     max-width: 400px;
@@ -79,7 +80,7 @@
     background-color: #4fc3f7;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .app-header .container {
         flex-direction: column;
         align-items: stretch;

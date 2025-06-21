@@ -16,7 +16,7 @@ const App = () => {
   const [backgroundUrl, setBackgroundUrl] = React.useState('');
 
   return (
-    <Router>
+    <Router basename="/GameStats">
       <div className="App">
         <QueryClientProvider client={client}>
           <Header />
@@ -24,7 +24,7 @@ const App = () => {
                   backgroundImage: backgroundUrl ? `url(${backgroundUrl})` : 'none',
             }}>
             <Routes>
-              <Route path="/GameStats" element={<Home />} />
+              <Route path="/" element={<Home />} />
               <Route path="/TopSteamGames" element={<TopSteamGames />} />
               <Route path="/game/:appid" element={<GameInfo setBackgroundUrl={setBackgroundUrl} />} />
               <Route path="/SteamAnalyse" element={<SteamAnalyse />} />

@@ -41,10 +41,10 @@ fieldnames = [
 # Get current playes for game
 # Input: appid
 # Output: appid, name, date_playerscount - for database
-def get_current_history_playercouny(appid, name): 
+def get_current_history_playercouny(appid): 
     row = bigquery_calling.BQ_get_history_playercount_by_appid(appid)
 
-    if row is not None:
+    if row is not None and row != []:
         return row
     
     try:
@@ -54,13 +54,14 @@ def get_current_history_playercouny(appid, name):
         data = res.json()
         if not data:
             raise ValueError(f"No data found for appid {appid}.")
-        
+        print("data")
+        date_playerscount = ", ".join([f"{entry[0]} {entry[1]}" for entry in data])
         # Process the data to get the date and player count
-        row = {
-            "appid": str(appid),
-            "name": name,
-            "date_playerscount": ", ".join([f"{entry[0]} {entry[1]}" for entry in data])
-        }
+        row = [{
+            "appid": int(appid),
+            "date_playerscount": date_playerscount,
+            "name": ""
+        }]
         return row
 
     except Exception as e:
@@ -294,7 +295,7 @@ def get_search_games():
 @app.route("/api/steam/playercount/<appid>")
 def get_current_playercount(appid):
     try:
-        row_of_data = bigquery_calling.BQ_get_history_playercount_by_appid(appid)
+        row_of_data = get_current_history_playercouny(appid)
         if row_of_data is None:
             return jsonify({"error": "App ID not found"}), 404
         return jsonify(row_of_data)
@@ -330,4 +331,4 @@ def update_task_handler():
 
 # RUN THE APP
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)), debug=True)

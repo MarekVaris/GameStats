@@ -34,6 +34,7 @@ const SteamAnalyse = () => {
         queryKey: ["fetchAllGamesMetadata"],
         queryFn: fetchAllGamesMetadata,
         refetchOnWindowFocus: false,
+        refetchOnMount: false,
     });
 
     const [dataPage, setDataPage] = useState<ChartsConfig[]>([]);

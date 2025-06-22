@@ -9,33 +9,35 @@ export const fetchTopSteamGames = async () => {
 
 export const fetchGame = async (appid: string | undefined) => {
     const res = await fetch(API_URL + "steam/game/" + appid);
-    if (!res.ok) {
-      const error: any = new Error('Failed to fetch');
-      error.status = res.status;
-      throw error;
-    }
+    if (!res.ok) throw new Error('Failed to fetch');
     return res.json();
 };
 
 export const fetchGameHistory = async (appid: string | undefined) => {
     const res = await fetch(API_URL + "steam/playercount/" + appid);
-    if (!res.ok) {
-      const error: any = new Error('Failed to fetch');
-      error.status = res.status;
-      throw error;
-    }
+    if (!res.ok) throw new Error('Failed to fetch');
     return res.json();
 };
   
 export const searchForGamesAllList = async () => {
-    const res = await fetch(API_URL + "steam/search");
+    const res = await fetch(API_URL + "steam/getallgameslist");
     if (!res.ok) throw new Error('Failed to fetch');
     return res.json();
 };
 
+export const searchForGames = async (query: string | undefined) => {
+    const res = await fetch(API_URL + "steam/search/" + query);
+    if (!res.ok) throw new Error('Failed to fetch');
+    return res.json();
+};
 
 export const fetchAllGamesMetadata = async () => {
     const res = await fetch(API_URL + "steam/allmetadata");
     if (!res.ok) throw new Error('Failed to fetch');
-    return res.json();
+
+    const text = await res.text();
+    // Replace all occurrences of NaN with null to fix invalid JSON
+    const cleanedText = text.replace(/\bNaN\b/g, 'null');
+    
+    return JSON.parse(cleanedText);
 };

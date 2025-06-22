@@ -54,6 +54,20 @@ const Header = () => {
                         placeholder="Search for a game..." 
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
+                        onBlur={(e) => {
+                            if (!e.relatedTarget || !e.relatedTarget.contains(e.relatedTarget)){
+                                setFilteredGames([]);
+                            }
+                        }}
+                        onFocus={() => {
+                            if (query.trim()) {
+                                const startsWith = query.trim().toLowerCase();
+                                const filtered = games?.filter(game =>
+                                    game.name.toLowerCase().startsWith(startsWith)
+                                ) || [];
+                                setFilteredGames(filtered);
+                            }
+                        }}
                     />
                     <button type="submit">Search</button>
                 </form>

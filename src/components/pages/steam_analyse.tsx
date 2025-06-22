@@ -28,14 +28,14 @@ type ChartsConfig = {
 
 const SteamAnalyse = () => {
     const {
-        data: analyseGames,
-        isLoading
+        data: analyseGames
     } = useQuery<GameMetadataAnalyse[]>({
         queryKey: ["fetchAllGamesMetadata"],
         queryFn: fetchAllGamesMetadata,
         refetchOnWindowFocus: false,
         refetchOnMount: false,
     });
+
 
     const [dataPage, setDataPage] = useState<ChartsConfig[]>([]);
 
@@ -46,6 +46,7 @@ const SteamAnalyse = () => {
 
     const chartRefs = useRef<HTMLDivElement[]>([]);
 
+    
     analyseGames?.forEach((game) => {
         developersCounter[game.developers] = (developersCounter[game.developers] || 0) + 1;
         
@@ -107,7 +108,7 @@ const SteamAnalyse = () => {
     
     return (
         <>
-            { isLoading && <p>Loading...</p> }
+
             <div className="charts-page">
                 {dataPage.map((dataset, i) => (
                     <div key={i} className="chart-container">

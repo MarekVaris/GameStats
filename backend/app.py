@@ -54,7 +54,6 @@ def get_current_history_playercouny(appid):
         data = res.json()
         if not data:
             raise ValueError(f"No data found for appid {appid}.")
-        print("data")
         date_playerscount = ", ".join([f"{entry[0]} {entry[1]}" for entry in data])
         # Process the data to get the date and player count
         row = [{
@@ -87,8 +86,11 @@ def fetch_game_metadata(appid = None):
             "name": "Unknown",
             "header_image": "",
         }
-
+    
+    # If cache is empty or expired, fetch new data
     global cache_all_games_metadata
+    check_and_update_cache()
+
     result = None
     # Check if appid is already in cache
     if cache_all_games_metadata:
@@ -98,7 +100,8 @@ def fetch_game_metadata(appid = None):
                 for data in fieldnames:
                     if data in ["platforms", "categories", "genres", "screenshots"]:
                         result[data] = result[data].split(", ") if result[data] else []
-    
+        
+
     # If cache is empty, fetch from BigQuery
     if result is None:
         result = bigquery_calling.BQ_get_metadata_by_appid(appid)
@@ -164,19 +167,8 @@ def get_all_top_games_sored():
 
     return all_games_return
 
-
-#########################################################
-#####################   API CALLS   #####################
-#########################################################
-
-
-# Top Current Gasmes
-# Input: key
-# Output: rank, appid, concurrent_in_game + name, header_image
-@app.route("/api/topcurrentgames")
-def get_top_current_games():
+def check_and_update_cache():
     global cache_last_fetch_timestamp, cache_game_ranking_topcurplayers, cache_all_games_metadata
-    combine_data = []
     try:
         # Check if cache is empty or expired
         if not cache_all_games_metadata or not cache_game_ranking_topcurplayers or \
@@ -191,6 +183,25 @@ def get_top_current_games():
     except Exception as e:
         print(f"Error fetching data: {e}")
         return jsonify({"error": "Failed to fetch data"}), 500
+
+#########################################################
+#####################   API CALLS   #####################
+#########################################################
+
+
+# Top Current Gasmes
+# Input: key
+# Output: rank, appid, concurrent_in_game + name, header_image
+@app.route("/api/topcurrentgames")
+def get_top_current_games():
+    global cache_game_ranking_topcurplayers, cache_all_games_metadata
+    combine_data = []
+
+    # Check and update cache if needed
+    check_and_update_cache()
+
+    if not cache_game_ranking_topcurplayers or not cache_all_games_metadata:
+        return jsonify({"error": "No data available"}), 500
 
     try:
         # Process the cached game ranking data
@@ -261,14 +272,12 @@ def get_metadata_all():
     global cache_all_games_metadata
     try:
         if not cache_all_games_metadata:
-            cache_all_games_metadata = fetch_game_metadata()
+            check_and_update_cache()
 
-        all_metadata = cache_all_games_metadata
-
-        if not all_metadata:
+        if not cache_all_games_metadata:
             return jsonify({"error": "No metadata found"}), 404
-        
-        return jsonify(all_metadata)
+                
+        return jsonify(cache_all_games_metadata)
     
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -276,7 +285,7 @@ def get_metadata_all():
 # Get all games applist
 # Input: query
 # Output: list of appids and names
-@app.route("/api/steam/search")
+@app.route("/api/steam/getallgameslist")
 def get_search_games():
     try:
         all_games = csv_calling.get_all_steam_games()
@@ -285,6 +294,33 @@ def get_search_games():
             return jsonify({"error": "No games found"}), 404
         
         return jsonify(all_games)
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@app.route("/api/steam/search/<query>")
+def get_search_games_query(query):
+    try:
+        global cache_all_games_metadata
+        if not cache_all_games_metadata:
+            check_and_update_cache()
+        
+        all_games = cache_all_games_metadata
+
+        if not all_games:
+            return jsonify({"error": "No games found"}), 404
+        
+        filtered_games = []
+
+        for game in all_games:
+            if game["name"].lower().find(str(query.lower()), 0, 4 + len(str(query))) != -1:
+                filtered_games.append({
+                    "appid": game["appid"],
+                    "name": game["name"],
+                    "header_image": game["header_image"]
+                })
+
+        return jsonify(filtered_games)
     
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -331,4 +367,4 @@ def update_task_handler():
 
 # RUN THE APP
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)), debug=True)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))

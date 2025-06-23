@@ -283,7 +283,7 @@ def get_metadata_all():
         return jsonify({"error": str(e)}), 500
 
 # Get all games applist
-# Input: query
+# Input: None
 # Output: list of appids and names
 @app.route("/api/steam/getallgameslist")
 def get_search_games():
@@ -298,6 +298,9 @@ def get_search_games():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
+# Get game api by search query
+# Input: query
+# Output: appid, name, header_images
 @app.route("/api/steam/search/<query>")
 def get_search_games_query(query):
     try:
@@ -367,4 +370,4 @@ def update_task_handler():
 
 # RUN THE APP
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)), debug=True)

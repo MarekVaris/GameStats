@@ -25,8 +25,8 @@ const Header = () => {
         enabled: false
     });
     
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleSearch = () => {
+        
         if (query.trim()) {
             navigate(`/search/${encodeURIComponent(query.trim())}`);
         }
@@ -86,7 +86,7 @@ const Header = () => {
                     <ul className="search-suggestions">
                         {filteredGames.slice(0, 5).map(game => (
                             <li key={game.appid}>
-                                <Link to={`/game/${game.appid}`} onClick={() => setQuery("")}>
+                                <Link to={`/game/${game.appid}`} onClick={() => (setQuery(""))}>
                                     {game.name}
                                 </Link>
                             </li>

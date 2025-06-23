@@ -4,17 +4,17 @@ import { useState } from "react";
 
 import { fetchGameHistory } from "../../../api/steam_games";
 
+type HistoryPlayerCount = {
+    appid: number,
+    name: string,
+    date_playerscount: string
+}
+type Date_PlayersCount = {
+    date: string,
+    playerscount: number
+}
 
 export const PlayerHistoryCountAreaChart = ({ appid }: { appid: string }) => {
-    type HistoryPlayerCount = {
-        appid: number,
-        name: string,
-        date_playerscount: string
-    }
-    type Date_PlayersCount = {
-        date: string,
-        playerscount: number
-    }
     const today = new Date();
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(today.getDate() - 7);

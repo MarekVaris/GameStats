@@ -17,24 +17,33 @@ const Header = () => {
 
     const { 
         data: games,
+        refetch,
+        isLoading
     } = useQuery<GameSearch[]>({
         queryKey: ["searchForGamesAllList"],
         queryFn: searchForGamesAllList,
+        enabled: false
     });
     
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleSearch = () => {
+        
         if (query.trim()) {
             navigate(`/search/${encodeURIComponent(query.trim())}`);
         }
     };
+
+    const handleFetch = () => {
+        if (!games){
+            refetch()
+        }
+    }
     
     useEffect(() => {
         if (!query.trim() || !games) {
             setFilteredGames([]);
             return;
         }
-        
+
         const startsWith = query.trim().toLowerCase();
         const filtered = games.filter(game =>
             game.name.toLowerCase().startsWith(startsWith)
@@ -53,16 +62,31 @@ const Header = () => {
                         type="text" 
                         placeholder="Search for a game..." 
                         value={query}
-                        onChange={(e) => setQuery(e.target.value)}
+                        onChange={(e) => (handleFetch(), setQuery(e.target.value))}
+                        onBlur={(e) => {
+                            if (!e.relatedTarget || !e.relatedTarget.contains(e.relatedTarget)){
+                                setFilteredGames([]);
+                            }
+                        }}
+                        onFocus={() => {
+                            if (query.trim()) {
+                                const startsWith = query.trim().toLowerCase();
+                                const filtered = games?.filter(game =>
+                                    game.name.toLowerCase().startsWith(startsWith)
+                                ) || [];
+                                setFilteredGames(filtered);
+                            }
+                        }}
                     />
                     <button type="submit">Search</button>
                 </form>
 
+                { isLoading && ( <li className="search-suggestions">Loading...</li> ) } 
                 {filteredGames.length > 0 && (
                     <ul className="search-suggestions">
                         {filteredGames.slice(0, 5).map(game => (
                             <li key={game.appid}>
-                                <Link to={`/game/${game.appid}`} onClick={() => setQuery("")}>
+                                <Link to={`/game/${game.appid}`} onClick={() => (setQuery(""))}>
                                     {game.name}
                                 </Link>
                             </li>

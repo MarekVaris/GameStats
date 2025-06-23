@@ -9,6 +9,7 @@ import Home from './pages/home'
 import TopSteamGames from './pages/top_steam_games'
 import GameInfo from './pages/game_info'
 import SteamAnalyse from './pages/steam_analyse'
+import SearchGame from './pages/search_game';
 
 const client = new QueryClient()
 
@@ -28,6 +29,7 @@ const App = () => {
               <Route path="/TopSteamGames" element={<TopSteamGames />} />
               <Route path="/game/:appid" element={<GameInfo setBackgroundUrl={setBackgroundUrl} />} />
               <Route path="/SteamAnalyse" element={<SteamAnalyse />} />
+              <Route path="/search/:query" element={<SearchGame />} />
             </Routes>
           </main>
         </QueryClientProvider>

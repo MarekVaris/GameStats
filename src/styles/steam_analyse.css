@@ -1,3 +1,9 @@
+.table-page{
+    width: 95%;
+    margin-top: 2em;
+    justify-self: center;
+}
+
 /* Base container for all charts */
 .charts-page {
     display: grid;

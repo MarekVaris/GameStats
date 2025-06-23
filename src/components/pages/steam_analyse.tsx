@@ -1,10 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
+import { createTheme, ThemeProvider } from '@mui/material/styles';
 import html2canvas from "html2canvas";
 
 import "../../styles/steam_analyse.css";
 
 import { fetchAllGamesMetadata } from "../../api/steam_games";
+import { TableAnalyse } from "./charts/tableAnalyse"
 import { BarChartAnalyse } from "./charts/barChartAnalyse";
 import { PieChartAnalyse } from "./charts/pieChartAnalyse";
 
@@ -26,16 +28,22 @@ type ChartsConfig = {
     numberOfSlices: number;
 };
 
+const darkTheme = createTheme({
+  palette: {
+    mode: 'dark',
+  },
+});
+
 const SteamAnalyse = () => {
     const {
-        data: analyseGames,
-        isLoading
+        data: analyseGames
     } = useQuery<GameMetadataAnalyse[]>({
         queryKey: ["fetchAllGamesMetadata"],
         queryFn: fetchAllGamesMetadata,
         refetchOnWindowFocus: false,
         refetchOnMount: false,
     });
+
 
     const [dataPage, setDataPage] = useState<ChartsConfig[]>([]);
 
@@ -46,6 +54,7 @@ const SteamAnalyse = () => {
 
     const chartRefs = useRef<HTMLDivElement[]>([]);
 
+    
     analyseGames?.forEach((game) => {
         developersCounter[game.developers] = (developersCounter[game.developers] || 0) + 1;
         
@@ -107,7 +116,13 @@ const SteamAnalyse = () => {
     
     return (
         <>
-            { isLoading && <p>Loading...</p> }
+            { analyseGames && (
+                <div className="table-page">
+                    <ThemeProvider theme={darkTheme}>
+                        <TableAnalyse data={analyseGames} />
+                    </ThemeProvider>
+                </div>
+            )}
             <div className="charts-page">
                 {dataPage.map((dataset, i) => (
                     <div key={i} className="chart-container">

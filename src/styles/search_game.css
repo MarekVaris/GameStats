@@ -1,0 +1,42 @@
+.search-results h2 {
+    text-align: center;
+    color: #e0e0e0;
+    margin-bottom: 1rem;
+}
+
+.search-results ul {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 1rem;
+}
+
+.search-results ul li.game-item {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    align-items: center;
+    background: #2a2f36;
+    border-radius: 12px;
+    padding: 0.5rem;
+    height: 90%;
+}
+
+.search-results ul li.game-item img {
+    max-width: 100%;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 12px;
+}
+
+.search-results ul li.game-item p {
+    font-weight: 600;
+    font-size: 1rem;
+    color: #e0e0e0;
+    margin: 0;
+}
+
+.search-results ul li.game-item:hover {
+    transform: translateY(-4px);
+    background-color: #323841;
+}

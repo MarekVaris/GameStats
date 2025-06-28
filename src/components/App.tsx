@@ -5,7 +5,6 @@ import '../styles/App.css';
 import Header from './layout/header_app'
 import Footer from './layout/footer_app'
 
-import Home from './pages/home'
 import SteamGameStats from './pages/steam_game_stats'
 import TopSteamGames from './pages/top_steam_games'
 import GameInfo from './pages/game_info'

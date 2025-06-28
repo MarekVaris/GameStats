@@ -96,7 +96,7 @@ const Header = () => {
                 )}
 
                 <nav>
-                    <Link to="/SteamGameStats">Home</Link>
+                    <Link to="/">Home</Link>
                     <Link to="/SteamAnalyse">Steam Analyse</Link>
                     <Link to="/TopSteamGames" onClick={resetSteamGameFilters}>Top Steam Games</Link>
                 </nav>

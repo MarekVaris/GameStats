@@ -129,14 +129,11 @@ const SteamAnalyse = () => {
                     <div key={i} className="chart-container">
                         <p>{dataset.title}</p>
                         <div className="chart-controls">
-                            <select
-                            value={dataset.type}
-                            onChange={(e) => {
-                                const selectedType = e.target.value as "bar" | "pie" | "line";
-                                setDataPage((prev) => {
-                                const newPage = [...prev];
-                                newPage[i].type = selectedType;
-                                return newPage;
+                            <select value={dataset.type} onChange={(e) => {
+                                    setDataPage((prev) => {
+                                        const newPage = [...prev];
+                                        newPage[i].type = e.target.value as "bar" | "pie" | "line";
+                                        return newPage;
                                 });
                             }}
                             >

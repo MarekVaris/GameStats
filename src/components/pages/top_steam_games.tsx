@@ -1,15 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import "../../styles/top_current_games.css"
 
 import { fetchTopSteamGames } from "../../api/steam_games";
-const SHOW_PAGES = 1
 
-export const resetSteamGameFilters = () => {
-  sessionStorage.removeItem("currentPage");
-  sessionStorage.removeItem("itemsPerPage");
-};
+
+const SHOW_PAGES = 1
 
 // Define the structure of a Game object
 type Game = {
@@ -19,6 +16,11 @@ type Game = {
     concurrent_in_game: number
     header_image: string
 }
+
+export const resetSteamGameFilters = () => {
+    sessionStorage.removeItem("currentPage");
+    sessionStorage.removeItem("itemsPerPage");
+};
 
 const GameStats = () => {
 
@@ -34,8 +36,8 @@ const GameStats = () => {
 
     // Calculate total pages and current games to display based on the current page and items per page
     const [itemsPerPage, setItemsPerPage] = useState(() => {
-    const saved = sessionStorage.getItem("itemsPerPage");
-    return saved ? parseInt(saved) : 25;
+        const saved = sessionStorage.getItem("itemsPerPage");
+        return saved ? parseInt(saved) : 25;
     });
     const totalPages = Math.ceil((games?.length ?? 0) / itemsPerPage)
 

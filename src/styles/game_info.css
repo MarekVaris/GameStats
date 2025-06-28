@@ -171,7 +171,7 @@
 
 /* Date input */
 .date-input-wrapper {
-  display: flex;
+    display: flex;
     flex-direction: column;
     gap: 0.5em;
     padding: 1em;
@@ -245,23 +245,14 @@
 .back-button {
     position: fixed;
     left: 2%;
-    border: none;
-    padding: 10px 20px;              /* Zwiększone i zrównane paddingy */
-    font-size: 2rem;
-    line-height: 1;                  /* Redukuje nadmiar miejsca nad/pod */
-    border-radius: 5px;
-    cursor: pointer;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-    transition: top 0.9s ease;
-    font-weight: bold;
-    display: flex;                   /* Centrowanie zawartości */
-    align-items: center;
-    justify-content: center;
+    padding: 0.5em 1em;
+    border-radius: 12px;
+    z-index: 1000;
 }
 
 .back-button:hover {
-  background-color: #4fc3f7;;
-  color: #ffffff;
+    background-color: #4fc3f7;;
+    color: #ffffff;
 }
 
 /* Responsive */

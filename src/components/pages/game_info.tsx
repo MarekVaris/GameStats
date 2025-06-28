@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useQuery } from '@tanstack/react-query';
-import { useParams, useNavigate  } from "react-router-dom";
+import { useParams  } from "react-router-dom";
 import "../../styles/game_info.css";
 
 import { fetchGame } from "../../api/steam_games";

@@ -6,6 +6,7 @@ import Header from './layout/header_app'
 import Footer from './layout/footer_app'
 
 import Home from './pages/home'
+import SteamGameStats from './pages/steam_game_stats'
 import TopSteamGames from './pages/top_steam_games'
 import GameInfo from './pages/game_info'
 import SteamAnalyse from './pages/steam_analyse'
@@ -26,6 +27,7 @@ const App = () => {
             }}>
             <Routes>
               <Route path="/" element={<Home />} />
+              <Route path="/SteamGameStats" element={<SteamGameStats />} />
               <Route path="/TopSteamGames" element={<TopSteamGames />} />
               <Route path="/game/:appid" element={<GameInfo setBackgroundUrl={setBackgroundUrl} />} />
               <Route path="/SteamAnalyse" element={<SteamAnalyse />} />

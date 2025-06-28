@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import "../../styles/header.css";
 import { useQuery } from "@tanstack/react-query";
 import { searchForGamesAllList } from "../../api/steam_games";
+import { resetSteamGameFilters } from "../../components/pages/top_steam_games"
 
 type GameSearch = {
     appid: number;
@@ -55,7 +56,7 @@ const Header = () => {
     return (
         <header className="app-header">
             <div className="container">
-                <h2>Steam Game Stats</h2>
+                <h2><Link to="/">Steam Game Stats</Link></h2>
 
                 <form className="search-form" onSubmit={handleSearch}>
                     <input 
@@ -95,9 +96,9 @@ const Header = () => {
                 )}
 
                 <nav>
-                    <Link to="/">Home</Link>
+                    <Link to="/SteamGameStats">Home</Link>
                     <Link to="/SteamAnalyse">Steam Analyse</Link>
-                    <Link to="/TopSteamGames">Top Steam Games</Link>
+                    <Link to="/TopSteamGames" onClick={resetSteamGameFilters}>Top Steam Games</Link>
                 </nav>
             </div>
         </header>

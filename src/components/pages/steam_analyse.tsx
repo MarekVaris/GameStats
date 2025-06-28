@@ -9,6 +9,7 @@ import { fetchAllGamesMetadata } from "../../api/steam_games";
 import { TableAnalyse } from "./charts/tableAnalyse"
 import { BarChartAnalyse } from "./charts/barChartAnalyse";
 import { PieChartAnalyse } from "./charts/pieChartAnalyse";
+import { LineChartAnalyse } from "./charts/lineChartAnalyse";
 
 type GameMetadataAnalyse = {
     appid: number;
@@ -22,7 +23,7 @@ type GameMetadataAnalyse = {
 }
 
 type ChartsConfig = {
-    type: "bar" | "pie";
+    type: "bar" | "pie" | "line";
     data: { name: string; value: number }[];
     title: string;
     numberOfSlices: number;
@@ -128,15 +129,20 @@ const SteamAnalyse = () => {
                     <div key={i} className="chart-container">
                         <p>{dataset.title}</p>
                         <div className="chart-controls">
-                            <select value={dataset.type} onChange={(e) => {
-                                setDataPage(prev => {
-                                    const newPage = [...prev];
-                                    newPage[i].type = e.target.value as "bar" | "pie";
-                                    return newPage;
+                            <select
+                            value={dataset.type}
+                            onChange={(e) => {
+                                const selectedType = e.target.value as "bar" | "pie" | "line";
+                                setDataPage((prev) => {
+                                const newPage = [...prev];
+                                newPage[i].type = selectedType;
+                                return newPage;
                                 });
-                            }}>
-                                <option value="bar">Bar Chart</option>
-                                <option value="pie">Pie Chart</option>
+                            }}
+                            >
+                            <option value="bar">Bar Chart</option>
+                            <option value="pie">Pie Chart</option>
+                            <option value="line">Line Chart</option>
                             </select>
 
                             <select onChange={(e) => {
@@ -191,11 +197,15 @@ const SteamAnalyse = () => {
                                 }}/>
                         </div>
                         <div className="chart-display" ref={(el) => { chartRefs.current[i] = el as HTMLDivElement; }}>
-                            {dataset.type === "bar" ? (
-                                <BarChartAnalyse data={dataset.data.slice(0, dataset.numberOfSlices)} />
-                            ) : (
-                                <PieChartAnalyse data={dataset.data.slice(0, dataset.numberOfSlices)} />
-                            )}
+                        {dataset.type === "bar" && (
+                            <BarChartAnalyse data={dataset.data.slice(0, dataset.numberOfSlices)} />
+                        )}
+                        {dataset.type === "pie" && (
+                            <PieChartAnalyse data={dataset.data.slice(0, dataset.numberOfSlices)} />
+                        )}
+                        {dataset.type === "line" && (
+                            <LineChartAnalyse data={dataset.data.slice(0, dataset.numberOfSlices)} />
+                        )}
                         </div>
                         <div className="chart-actions">
                             <button className="save-button" onClick={() => downloadChart(i)}>Download Chart</button>

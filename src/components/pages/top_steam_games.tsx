@@ -1,10 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import "../../styles/top_current_games.css"
 
 import { fetchTopSteamGames } from "../../api/steam_games";
 const SHOW_PAGES = 1
+
+export const resetSteamGameFilters = () => {
+  sessionStorage.removeItem("currentPage");
+  sessionStorage.removeItem("itemsPerPage");
+};
 
 // Define the structure of a Game object
 type Game = {
@@ -17,7 +22,6 @@ type Game = {
 
 const GameStats = () => {
 
-
     // Fetch top Steam games when the component mounts
     const {
         data: games,
@@ -29,7 +33,10 @@ const GameStats = () => {
     });
 
     // Calculate total pages and current games to display based on the current page and items per page
-    const [itemsPerPage, setItemsPerPage] = useState(25)
+    const [itemsPerPage, setItemsPerPage] = useState(() => {
+    const saved = sessionStorage.getItem("itemsPerPage");
+    return saved ? parseInt(saved) : 25;
+    });
     const totalPages = Math.ceil((games?.length ?? 0) / itemsPerPage)
 
     // Save the current page in session storage
@@ -84,7 +91,14 @@ const GameStats = () => {
                 {/* How many rows of games per page */}
                 <div className="num-games-selector">
                     <p>Number of games per page:</p>
-                    <select value={itemsPerPage} onChange={(e) => {setItemsPerPage(Number(e.target.value)), handlePageChange(1)}}>
+                    <select
+                        value={itemsPerPage}
+                        onChange={(e) => {
+                            const value = Number(e.target.value);
+                            setItemsPerPage(value);
+                            sessionStorage.setItem("itemsPerPage", value.toString());
+                            handlePageChange(1);
+                        }}>
                         <option value="10">10</option>
                         <option value="25">25</option>
                         <option value="50">50</option>

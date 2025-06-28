@@ -1,10 +1,6 @@
-# 🚧 Under Construction 🚧
-
-This project is currently a work in progress. Stay tuned for more features and improvements!
-
----
-
 # 🎮 Steam Game Stats
+
+[Check out the GameStats ~ 10s cold start](https://marekvaris.github.io/GameStats/)
 
 This project is a full-stack web application designed to explore and analyze Steam game data. The frontend is built with React and TypeScript, providing a responsive and interactive user interface that displays top Steam games, detailed game information, and comprehensive data visualizations. The backend serves Steam game data using Google BigQuery for analytics and is deployed on Google Cloud Run, enabling a scalable, serverless API. 🚀
 
@@ -27,6 +23,19 @@ The frontend fetches Steam game data from a REST API running on Google Cloud Run
 - **Backend**: Google Cloud Run ☁️ hosts a serverless API that connects to Google BigQuery, which manages the large-scale Steam game dataset.
   
 This architecture allows efficient querying of large datasets with minimal latency, while delivering a smooth, modern frontend experience.
+
+---
+
+## 🖼️ Screenshots
+
+<div style="display: flex; gap: 10px; flex-wrap: wrap;">
+  <img src="public/Screenshot_1.jpg" width="300"/>
+  <img src="public/Screenshot_2.jpg" width="300"/>
+  <img src="public/Screenshot_3.jpg" width="300"/>
+  <img src="public/Screenshot_4.jpg" width="300"/>
+</div>
+
+
 
 ---
 

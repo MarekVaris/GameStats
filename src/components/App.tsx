@@ -17,13 +17,16 @@ const App = () => {
   const [backgroundUrl, setBackgroundUrl] = React.useState('');
 
   return (
+    // Using BrowserRouter with a basename for the application
     <Router basename="/GameStats/">
       <div className="App">
+        {/* QueryClientProvider to provide React Query context */}
         <QueryClientProvider client={client}>
           <Header />
             <main className="container-main" style={{ 
                   backgroundImage: backgroundUrl ? `url(${backgroundUrl})` : 'none',
             }}>
+            {/* Main content of the application */}
             <Routes>
               <Route path="/" element={<SteamGameStats />} />
               <Route path="/TopSteamGames" element={<TopSteamGames />} />

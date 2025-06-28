@@ -16,6 +16,7 @@ const Header = () => {
     const [filteredGames, setFilteredGames] = useState<GameSearch[]>([]);
     const navigate = useNavigate();
 
+    // Fetch all games for search suggestions
     const { 
         data: games,
         refetch,
@@ -26,19 +27,21 @@ const Header = () => {
         enabled: false
     });
     
-    const handleSearch = () => {
-        
+    // Handle search submission
+    const handleSearch = () => { 
         if (query.trim()) {
             navigate(`/search/${encodeURIComponent(query.trim())}`);
         }
     };
 
+    // Handle fetching games when the input changes
     const handleFetch = () => {
         if (!games){
             refetch()
         }
     }
     
+    // Filter games based on the query
     useEffect(() => {
         if (!query.trim() || !games) {
             setFilteredGames([]);
@@ -58,6 +61,7 @@ const Header = () => {
             <div className="container">
                 <h2><Link to="/">Steam Game Stats</Link></h2>
 
+                {/* Search form with suggestions */}
                 <form className="search-form" onSubmit={handleSearch}>
                     <input 
                         type="text" 
@@ -81,7 +85,8 @@ const Header = () => {
                     />
                     <button type="submit">Search</button>
                 </form>
-
+                
+                {/* Display search suggestions */}
                 { isLoading && ( <li className="search-suggestions">Loading...</li> ) } 
                 {filteredGames.length > 0 && (
                     <ul className="search-suggestions">
@@ -95,6 +100,7 @@ const Header = () => {
                     </ul>
                 )}
 
+                {/* Navigation links */}
                 <nav>
                     <Link to="/">Home</Link>
                     <Link to="/SteamAnalyse">Steam Analyse</Link>

@@ -52,19 +52,26 @@ def BQ_fetch_new_history_playercount():
                 new_data = app.fetch_game_metadata(str(data["appid"]))
                 data_list.append({"appid": data["appid"], "name": new_data["name"] })
 
-        def fetch_chart_data(appid, name):
+        import time
+        def fetch_chart_data(appid, name, retries=3, delay=1):
             url = f"https://steamcharts.com/app/{appid}/chart-data.json"
-            request = requests.get(url)
-            if request.status_code != 200:
-                print(f"Failed to fetch data for appid {appid}: {request.status_code}")
-                return None
-            data = request.json()
-            date_playerscount = ", ".join([f"{entry[0]} {entry[1]}" for entry in data])
-            return {
-                "appid": appid,
-                "name": name,
-                "date_playerscount": date_playerscount
-            }
+            for attempt in range(retries):
+                try:
+                    request = requests.get(url, timeout=10)
+                    if request.status_code != 200:
+                        print(f"Failed to fetch data for appid {appid}: {request.status_code}")
+                        return None
+                    data = request.json()
+                    date_playerscount = ", ".join([f"{entry[0]} {entry[1]}" for entry in data])
+                    return {
+                        "appid": appid,
+                        "name": name,
+                        "date_playerscount": date_playerscount
+                    }
+                except Exception as e:
+                    print(f"Error fetching chart data for appid {appid} (attempt {attempt+1}): {e}")
+                    time.sleep(delay)
+            return None
 
         print(f"Fetching player count history for {len(data_list)} apps...")
         with ThreadPoolExecutor(max_workers=100) as executor:
@@ -112,16 +119,13 @@ def release_lock():
 #             "headers": {"Content-Type": "application/json"},
 #             "oidc_token": {
 #                 "service_account_email": f"{PROJECT_ID}@appspot.gserviceaccount.com"
-#             },
-#         }
-#     }
-#     response = client_tasks.create_task(parent=parent, task=task)
-#     return response.name
-
-# Updates player count history in BigQuery
 def upload_to_bigquery(all_data):
     df = pd.DataFrame(all_data)
     df = df.drop_duplicates(subset=["appid","name","date_playerscount"])
+
+    if df.empty:
+        print("No data to upload to BigQuery. DataFrame is empty.")
+        return
 
     job = client_bq.load_table_from_dataframe(
         df,
@@ -129,6 +133,7 @@ def upload_to_bigquery(all_data):
         job_config=bigquery.LoadJobConfig(write_disposition="WRITE_TRUNCATE"),
     )
     job.result()
+
 
 
 

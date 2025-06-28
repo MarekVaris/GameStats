@@ -36,6 +36,7 @@ const darkTheme = createTheme({
 });
 
 const SteamAnalyse = () => {
+    // Fetch all game metadata
     const {
         data: analyseGames
     } = useQuery<GameMetadataAnalyse[]>({
@@ -45,7 +46,7 @@ const SteamAnalyse = () => {
         refetchOnMount: false,
     });
 
-
+    // State to manage the charts data
     const [dataPage, setDataPage] = useState<ChartsConfig[]>([]);
 
     const developersCounter: Record<string, number> = {};
@@ -55,7 +56,7 @@ const SteamAnalyse = () => {
 
     const chartRefs = useRef<HTMLDivElement[]>([]);
 
-    
+    // Process the game metadata to count developers, platforms, categories, and genres
     analyseGames?.forEach((game) => {
         developersCounter[game.developers] = (developersCounter[game.developers] || 0) + 1;
         
@@ -110,13 +111,14 @@ const SteamAnalyse = () => {
             link.click();
     })};
 
-
+    // Initialize the data page with developers data
     useEffect(() => {
         setDataPage([{ type: "bar", data: developersData, title: "Developers", numberOfSlices: 20 }]);
     }, [analyseGames]);
     
     return (
         <>
+            {/* Displaying the table of games */}
             { analyseGames && (
                 <div className="table-page">
                     <ThemeProvider theme={darkTheme}>
@@ -124,11 +126,13 @@ const SteamAnalyse = () => {
                     </ThemeProvider>
                 </div>
             )}
+            {/* Displaying the charts */}
             <div className="charts-page">
                 {dataPage.map((dataset, i) => (
                     <div key={i} className="chart-container">
                         <p>{dataset.title}</p>
                         <div className="chart-controls">
+                            {/* Dropdown to select dataset */}
                             <select value={dataset.type} onChange={(e) => {
                                     setDataPage((prev) => {
                                         const newPage = [...prev];
@@ -141,7 +145,7 @@ const SteamAnalyse = () => {
                             <option value="pie">Pie Chart</option>
                             <option value="line">Line Chart</option>
                             </select>
-
+                            {/* Dropdown changing dataset */}
                             <select onChange={(e) => {
                                 const value = e.target.value;
                                 let newDataSet: any[] = [];
@@ -179,7 +183,7 @@ const SteamAnalyse = () => {
                                 <option value="categories">Categories</option>
                                 <option value="genres">Genres</option>
                             </select>
-
+                            {/* Input to change number of slices */}
                             <input
                                 type="number"
                                 min={1}
@@ -193,6 +197,7 @@ const SteamAnalyse = () => {
                                     });
                                 }}/>
                         </div>
+                        {/* Displaying the chart */}
                         <div className="chart-display" ref={(el) => { chartRefs.current[i] = el as HTMLDivElement; }}>
                         {dataset.type === "bar" && (
                             <BarChartAnalyse data={dataset.data.slice(0, dataset.numberOfSlices)} />
@@ -204,6 +209,7 @@ const SteamAnalyse = () => {
                             <LineChartAnalyse data={dataset.data.slice(0, dataset.numberOfSlices)} />
                         )}
                         </div>
+                        {/* Actions for the chart */}
                         <div className="chart-actions">
                             <button className="save-button" onClick={() => downloadChart(i)}>Download Chart</button>
                             <button className="delete-button" onClick={() => setDataPage(prev => prev.filter((_, index) => index !== i))}>Delete</button>

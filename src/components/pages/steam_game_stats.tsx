@@ -16,7 +16,7 @@ type Game = {
 };
 
 const GameStats = () => {
-
+    // Fetch top Steam games when the component mounts
     const { 
         data: games 
     } = useQuery<Game[]>({
@@ -26,13 +26,15 @@ const GameStats = () => {
         refetchOnMount: false,
     });
     
-    
+    // Calculate top 10 games and prepare data for the pie chart
     const top10Games = (games ?? []).slice(0, 10);
     const [showAll, setShowAll] = useState(false);
 
     const totalPlayersAllGames = (games ?? []).reduce((sum, g) => sum + g.concurrent_in_game, 0);
     const totalPlayersTop10 = top10Games.reduce((sum, g) => sum + g.concurrent_in_game, 0);
+    const visibleGames : Game[] = showAll ? top10Games : top10Games.slice(0, 5);
 
+    // Prepare data for the pie chart
     const chartData = [
         ...top10Games.map((game) => ({
             name: game.name,
@@ -44,14 +46,13 @@ const GameStats = () => {
         },
     ];
 
-    const visibleGames : Game[] = showAll ? top10Games : top10Games.slice(0, 5);
 
     return (
         <div className="top-games-container">
             <h1>Hall of Glory</h1>
-
             <div className="crown">♕</div>
-
+            
+            {/* Displaying the top 10 games */}
             <div className="game-grid">
                 { visibleGames.map((game, index) => {
                     const isDimmed = !showAll && index === 4;
@@ -78,13 +79,14 @@ const GameStats = () => {
                     {showAll ? "▲" : "▼"}
                 </button>
             </div>
-        
+            
+            {/* Displaying the pie chart with game stats */}
             <div className="chart-container-gamestats">
                 <PieChartGameStats data={chartData} />
             </div>
-
+            
+            {/* Displaying live game stats */}
             <div className="top-stats-container">
-
                     <h3>Live Game Stats</h3>
                     <div className="top-stats-grid">
                         <div className="stat-item">

@@ -171,7 +171,7 @@
 
 /* Date input */
 .date-input-wrapper {
-  display: flex;
+    display: flex;
     flex-direction: column;
     gap: 0.5em;
     padding: 1em;
@@ -216,7 +216,7 @@
 
 .date-button {
     padding: 0.5em 1em;
-    color: white;
+    color: #ffffff;
     font-size: 0.95rem;
     cursor: pointer;
 }
@@ -240,6 +240,19 @@
 }
 .reset-button:hover {
     background-color: #3fa46b;
+}
+
+.back-button {
+    position: fixed;
+    left: 2%;
+    padding: 0.5em 1em;
+    border-radius: 12px;
+    z-index: 1000;
+}
+
+.back-button:hover {
+    background-color: #4fc3f7;;
+    color: #ffffff;
 }
 
 /* Responsive */

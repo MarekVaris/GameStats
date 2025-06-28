@@ -1,0 +1,147 @@
+.top-games-container {
+    text-align: center;
+}
+
+.game-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15em, 1fr));
+    gap: 1.5rem;
+    margin-top: 2em;
+}
+
+.game-card {
+    background-color: #1e1e2f;
+    border-radius: 12px;
+    text-decoration: none;
+    color: white;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+    transition: transform 0.2s ease;
+    width: 100%;
+}
+
+.game-card img {
+    border-radius: 12px 12px 0 0;
+    width: 100%;
+    display: block;
+}
+
+.game-card:hover {
+    transform: translateY(-5px);
+}
+
+.game-rank {
+    font-size: 1.1em;
+    font-weight: bold;
+    margin-top: 1em;
+    color: #61dafb;
+}
+
+.game-info-gamestats {
+    padding: 1em;
+}
+
+.game-name {
+    font-size: 1.1rem;
+    font-weight: bold;
+    margin: auto;
+}
+
+.player-count {
+    color: #ccc;
+}
+
+.crown {
+    font-size: 3em;
+    color: #61dafb;
+}
+
+.dimmed {
+    opacity: 0.5;
+}
+
+.toggle-button-container {
+    margin-top: 4em;
+    margin-bottom: 1em;
+}
+
+.toggle-button {
+    background-color: #61dafb;
+    border-radius: 12px;
+    padding: 0.7em 1.5em;
+}
+
+.chart-container-gamestats {
+    border: 2px solid #444;
+    border-radius: 12px;
+    padding: 2em;
+    height: 700px;
+}
+
+
+
+.top-stats-container {
+    display: flex;
+    flex-direction: column;
+    background-color: #1e1e2f;
+    border-radius: 12px;
+    margin-top: 4em;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+    color: #fff;
+}
+
+.top-stats-container h3{
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    color: #f5f5f5;
+}
+
+.top-stats-grid {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 1em;
+    gap: 1.5rem;
+}
+
+.stat-item {
+    background-color: #2c2c3e;
+    border-radius: 12px;
+    padding: 1rem;
+    text-align: center;
+    align-self: center;
+    width: 90%;
+}
+
+.stat-item strong {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #ccc;
+}
+
+.highlighted {
+    color: #61dafb;
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+.custom-legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+    padding: 1em;
+    border: 2px solid #444;
+    border-radius: 12px;
+    background-color: #2f2f2f;
+    max-width: 100%;
+    margin: auto;
+}
+
+.custom-legend li {
+    font-weight: bold;
+    font-size: 1rem;
+    padding: 0.4em;
+    color: #fff;
+    border-radius: 12px;
+}

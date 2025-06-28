@@ -6,6 +6,7 @@ import Header from './layout/header_app'
 import Footer from './layout/footer_app'
 
 import Home from './pages/home'
+import SteamGameStats from './pages/steam_game_stats'
 import TopSteamGames from './pages/top_steam_games'
 import GameInfo from './pages/game_info'
 import SteamAnalyse from './pages/steam_analyse'
@@ -17,7 +18,7 @@ const App = () => {
   const [backgroundUrl, setBackgroundUrl] = React.useState('');
 
   return (
-    <Router basename="/GameStats">
+    <Router basename="/GameStats/">
       <div className="App">
         <QueryClientProvider client={client}>
           <Header />
@@ -25,7 +26,7 @@ const App = () => {
                   backgroundImage: backgroundUrl ? `url(${backgroundUrl})` : 'none',
             }}>
             <Routes>
-              <Route path="/" element={<Home />} />
+              <Route path="/" element={<SteamGameStats />} />
               <Route path="/TopSteamGames" element={<TopSteamGames />} />
               <Route path="/game/:appid" element={<GameInfo setBackgroundUrl={setBackgroundUrl} />} />
               <Route path="/SteamAnalyse" element={<SteamAnalyse />} />

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useQuery } from '@tanstack/react-query';
-import { useParams } from "react-router-dom";
+import { useParams  } from "react-router-dom";
 import "../../styles/game_info.css";
 
 import { fetchGame } from "../../api/steam_games";
@@ -39,12 +39,18 @@ const GameInfo = ({ setBackgroundUrl }: GameInfoProps) => {
     const { appid } = useParams<string>();
     const [focusImage, setFocusImage] = useState<string | null>(null);
 
+
+
     // Default focus image to the first screenshot if available
     const platforms: Record<string, string> = {
         windows: windowsIcon,
         mac: macIcon,
         linux: linuxIcon,
         android: androidIcon,
+    };
+
+    const handleBackClick = () => {
+        window.history.back();
     };
 
     // Fetch game metadata using React Query
@@ -100,6 +106,7 @@ const GameInfo = ({ setBackgroundUrl }: GameInfoProps) => {
     return (
         <div className="game-info">
             {/* Screenshots and image carousel */}
+            <button className="back-button" onClick={handleBackClick}> ← </button>
             {Array.isArray(metadata?.screenshots) && metadata.screenshots.length > 0 ? (
                 <div className="screenshots-game-info">
                     <div> 

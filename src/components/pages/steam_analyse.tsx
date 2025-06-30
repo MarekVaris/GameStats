@@ -38,7 +38,9 @@ const darkTheme = createTheme({
 const SteamAnalyse = () => {
     // Fetch all game metadata
     const {
-        data: analyseGames
+        data: analyseGames,
+        isLoading,
+        isError
     } = useQuery<GameMetadataAnalyse[]>({
         queryKey: ["fetchAllGamesMetadata"],
         queryFn: fetchAllGamesMetadata,
@@ -117,114 +119,125 @@ const SteamAnalyse = () => {
     }, [analyseGames]);
     
     return (
-        <>
-            {/* Displaying the table of games */}
-            { analyseGames && (
-                <div className="table-page">
-                    <ThemeProvider theme={darkTheme}>
-                        <TableAnalyse data={analyseGames} />
-                    </ThemeProvider>
-                </div>
-            )}
-            {/* Displaying the charts */}
-            <div className="charts-page">
-                {dataPage.map((dataset, i) => (
-                    <div key={i} className="chart-container">
-                        <p>{dataset.title}</p>
-                        <div className="chart-controls">
-                            {/* Dropdown to select dataset */}
-                            <select value={dataset.type} onChange={(e) => {
-                                    setDataPage((prev) => {
-                                        const newPage = [...prev];
-                                        newPage[i].type = e.target.value as "bar" | "pie" | "line";
-                                        return newPage;
-                                });
-                            }}
-                            >
-                            <option value="bar">Bar Chart</option>
-                            <option value="pie">Pie Chart</option>
-                            <option value="line">Line Chart</option>
-                            </select>
-                            {/* Dropdown changing dataset */}
-                            <select onChange={(e) => {
-                                const value = e.target.value;
-                                let newDataSet: any[] = [];
-                                let title = "";
-                                switch (value) {
-                                    case "developers":
-                                        newDataSet = developersData;
-                                        title = "Developers";
-                                        break;
-                                    case "platforms":
-                                        newDataSet = platformsData;
-                                        title = "Platforms";
-                                        break;
-                                    case "categories":
-                                        newDataSet = categoriesData;
-                                        title = "Categories";
-                                        break;
-                                    case "genres":
-                                        newDataSet = genresData;
-                                        title = "Genres";
-                                        break;
-                                    default:
-                                        newDataSet = [];
-                                        title = "";
-                                } 
-                                setDataPage(prev => {
-                                    const newPage = [...prev];
-                                    newPage[i].data = newDataSet;
-                                    newPage[i].title = title;
-                                    return newPage;
-                                });
-                            }}>
-                                <option value="developers">Developers</option>
-                                <option value="platforms">Platforms</option>
-                                <option value="categories">Categories</option>
-                                <option value="genres">Genres</option>
-                            </select>
-                            {/* Input to change number of slices */}
-                            <input
-                                type="number"
-                                min={1}
-                                max={dataset.data.length}
-                                value={dataset.numberOfSlices}
-                                onChange={(e) => {
+        isLoading ? (
+            <div className="loading-container">
+                <h1>Loading...</h1>
+            </div>
+        ) : isError ? (
+            <div className="error-container">
+                <h1>Error loading game metadata</h1>
+            </div>
+        ) : (
+            <>
+                {/* Displaying the table of games */}
+                { analyseGames && (
+                    <div className="table-page">
+                        <ThemeProvider theme={darkTheme}>
+                            <TableAnalyse data={analyseGames} />
+                        </ThemeProvider>
+                    </div>
+                )}
+                
+                {/* Displaying the charts */}
+                <div className="charts-page">
+                    { dataPage.map((dataset, i) => (
+                        <div key={i} className="chart-container">
+                            <p>{dataset.title}</p>
+                            <div className="chart-controls">
+                                {/* Dropdown to select dataset */}
+                                <select value={dataset.type} onChange={(e) => {
+                                        setDataPage((prev) => {
+                                            const newPage = [...prev];
+                                            newPage[i].type = e.target.value as "bar" | "pie" | "line";
+                                            return newPage;
+                                    });
+                                }}
+                                >
+                                <option value="bar">Bar Chart</option>
+                                <option value="pie">Pie Chart</option>
+                                <option value="line">Line Chart</option>
+                                </select>
+                                {/* Dropdown changing dataset */}
+                                <select onChange={(e) => {
+                                    const value = e.target.value;
+                                    let newDataSet: any[] = [];
+                                    let title = "";
+                                    switch (value) {
+                                        case "developers":
+                                            newDataSet = developersData;
+                                            title = "Developers";
+                                            break;
+                                        case "platforms":
+                                            newDataSet = platformsData;
+                                            title = "Platforms";
+                                            break;
+                                        case "categories":
+                                            newDataSet = categoriesData;
+                                            title = "Categories";
+                                            break;
+                                        case "genres":
+                                            newDataSet = genresData;
+                                            title = "Genres";
+                                            break;
+                                        default:
+                                            newDataSet = [];
+                                            title = "";
+                                    } 
                                     setDataPage(prev => {
                                         const newPage = [...prev];
-                                        newPage[i].numberOfSlices = Number(e.target.value);
+                                        newPage[i].data = newDataSet;
+                                        newPage[i].title = title;
                                         return newPage;
                                     });
-                                }}/>
+                                }}>
+                                    <option value="developers">Developers</option>
+                                    <option value="platforms">Platforms</option>
+                                    <option value="categories">Categories</option>
+                                    <option value="genres">Genres</option>
+                                </select>
+                                {/* Input to change number of slices */}
+                                <input
+                                    type="number"
+                                    min={1}
+                                    max={dataset.data.length}
+                                    value={dataset.numberOfSlices}
+                                    onChange={(e) => {
+                                        setDataPage(prev => {
+                                            const newPage = [...prev];
+                                            newPage[i].numberOfSlices = Number(e.target.value);
+                                            return newPage;
+                                        });
+                                    }}/>
+                            </div>
+                            {/* Displaying the chart */}
+                            <div className="chart-display" ref={(el) => { chartRefs.current[i] = el as HTMLDivElement; }}>
+                            {dataset.type === "bar" && (
+                                <BarChartAnalyse data={dataset.data.slice(0, dataset.numberOfSlices)} />
+                            )}
+                            {dataset.type === "pie" && (
+                                <PieChartAnalyse data={dataset.data.slice(0, dataset.numberOfSlices)} />
+                            )}
+                            {dataset.type === "line" && (
+                                <LineChartAnalyse data={dataset.data.slice(0, dataset.numberOfSlices)} />
+                            )}
+                            </div>
+                            {/* Actions for the chart */}
+                            <div className="chart-actions">
+                                <button className="save-button" onClick={() => downloadChart(i)}>Download Chart</button>
+                                <button className="delete-button" onClick={() => setDataPage(prev => prev.filter((_, index) => index !== i))}>Delete</button>
+                            </div>
                         </div>
-                        {/* Displaying the chart */}
-                        <div className="chart-display" ref={(el) => { chartRefs.current[i] = el as HTMLDivElement; }}>
-                        {dataset.type === "bar" && (
-                            <BarChartAnalyse data={dataset.data.slice(0, dataset.numberOfSlices)} />
-                        )}
-                        {dataset.type === "pie" && (
-                            <PieChartAnalyse data={dataset.data.slice(0, dataset.numberOfSlices)} />
-                        )}
-                        {dataset.type === "line" && (
-                            <LineChartAnalyse data={dataset.data.slice(0, dataset.numberOfSlices)} />
-                        )}
-                        </div>
-                        {/* Actions for the chart */}
-                        <div className="chart-actions">
-                            <button className="save-button" onClick={() => downloadChart(i)}>Download Chart</button>
-                            <button className="delete-button" onClick={() => setDataPage(prev => prev.filter((_, index) => index !== i))}>Delete</button>
-                        </div>
-                    </div>
-                ))}
-            </div>
-
-            <div>
-                { /* Add new chart */ }
-                <div className="add-chart-controls">
-                    <button onClick={() => setDataPage(prev => [...prev, { type: "bar", data: developersData, title: "Developers", numberOfSlices: 20 }])}>Add New Chart</button>
+                    ))}
                 </div>
-            </div>
-        </>
+
+                <div>
+                    { /* Add new chart */ }
+                    <div className="add-chart-controls">
+                        <button onClick={() => setDataPage(prev => [...prev, { type: "bar", data: developersData, title: "Developers", numberOfSlices: 20 }])}>Add New Chart</button>
+                    </div>
+                </div>
+            </>
+        )
     );
 }
 

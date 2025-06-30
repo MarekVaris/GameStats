@@ -27,6 +27,8 @@ const GameStats = () => {
     // Fetch top Steam games when the component mounts
     const {
         data: games,
+        isLoading,
+        isError
     } = useQuery<Game[]>({
         queryKey: ["topSteamGames"],
         queryFn: fetchTopSteamGames,
@@ -87,69 +89,81 @@ const GameStats = () => {
     }
 
     return (
-        <div>
-            <h1>Top Steam Games</h1>
-            <ul>
-                {/* How many rows of games per page */}
-                <div className="num-games-selector">
-                    <p>Number of games per page:</p>
-                    <select
-                        value={itemsPerPage}
-                        onChange={(e) => {
-                            const value = Number(e.target.value);
-                            setItemsPerPage(value);
-                            sessionStorage.setItem("itemsPerPage", value.toString());
-                            handlePageChange(1);
-                        }}>
-                        <option value="10">10</option>
-                        <option value="25">25</option>
-                        <option value="50">50</option>
-                    </select>
+        isLoading ? (
+            <div className="loading-container">
+                <h1>Loading...</h1>
+            </div>
+        ) : isError ? (
+            <div className="error-container">
+                <h1>Error loading game stats</h1>
+            </div>
+        ) : (
+            <>
+                <div>
+                    <h1>Top Steam Games</h1>
+                    <ul>
+                        {/* How many rows of games per page */}
+                        <div className="num-games-selector">
+                            <p>Number of games per page:</p>
+                            <select
+                                value={itemsPerPage}
+                                onChange={(e) => {
+                                    const value = Number(e.target.value);
+                                    setItemsPerPage(value);
+                                    sessionStorage.setItem("itemsPerPage", value.toString());
+                                    handlePageChange(1);
+                                }}>
+                                <option value="10">10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                            </select>
 
-                </div>
-                    {/* Displaying games (rows) */}
-                    {/* Each game is a link to its own page */}
-                    {currentGames.map((game) => (
-                        <Link to={`/game/${game.appid}`} key={game.appid} className="game-links">
-                            <li key={game.rank} className="game-row">
-                                <span className="rank">{game.rank}</span>
-                                <img className="header-image-row" src={game.header_image} alt="img" />
-                                <div className="row-info">
-                                    <p><span>Game Name:</span> {game.name}</p>
-                                    <p><span>Current Players:</span> {game.concurrent_in_game}</p>
-                                </div>
-                            </li>
-                        </Link>
-                    ))}
+                        </div>
+                            {/* Displaying games (rows) */}
+                            {/* Each game is a link to its own page */}
+                            {currentGames.map((game) => (
+                                <Link to={`/game/${game.appid}`} key={game.appid} className="game-links">
+                                    <li key={game.rank} className="game-row">
+                                        <span className="rank">{game.rank}</span>
+                                        <img className="header-image-row" src={game.header_image} alt="img" />
+                                        <div className="row-info">
+                                            <p><span>Game Name:</span> {game.name}</p>
+                                            <p><span>Current Players:</span> {game.concurrent_in_game}</p>
+                                        </div>
+                                    </li>
+                                </Link>
+                            ))}
 
-                <div className="number-of-data-rows">
-                    <p>Showing {(startIndex + 1) + "-" + (startIndex + currentGames.length)} of {games?.length ?? 0} Games</p>
-                </div>
+                        <div className="number-of-data-rows">
+                            <p>Showing {(startIndex + 1) + "-" + (startIndex + currentGames.length)} of {games?.length ?? 0} Games</p>
+                        </div>
 
-                {/* Changing page buttons */}
-                <div className="pagination">
-                    {/* Back one page */}
-                    <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
-                        Prev
-                    </button>
-                    {/* Setting up numbers - From list check if current is "..." else put number */}
-                    {pageCount().map((number, index) =>  number === "..." ? (
-                        <span key={index} className="dots">...</span>
-                    ) : (
-                        <button
-                            key={index}
-                            className={currentPage === number as number ? "active" : ""}
-                            onClick={() => handlePageChange(number as number)}>
-                            {number}
-                        </button>
-                    ))}
-                    {/* Forward one page */}
-                    <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
-                        Next
-                    </button>
+                        {/* Changing page buttons */}
+                        <div className="pagination">
+                            {/* Back one page */}
+                            <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
+                                Prev
+                            </button>
+                            {/* Setting up numbers - From list check if current is "..." else put number */}
+                            {pageCount().map((number, index) =>  number === "..." ? (
+                                <span key={index} className="dots">...</span>
+                            ) : (
+                                <button
+                                    key={index}
+                                    className={currentPage === number as number ? "active" : ""}
+                                    onClick={() => handlePageChange(number as number)}>
+                                    {number}
+                                </button>
+                            ))}
+                            {/* Forward one page */}
+                            <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
+                                Next
+                            </button>
+                        </div>
+                    </ul>
                 </div>
-            </ul>
-        </div>
+            </>
+        )
     )
 }
 

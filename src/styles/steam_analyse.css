@@ -2,6 +2,12 @@
     width: 95%;
     margin-top: 2em;
     justify-self: center;
+    padding: 1em;
+    margin-bottom: 1em;
+}
+
+.table-page button {
+    margin-bottom: 1em;
 }
 
 /* Base container for all charts */
